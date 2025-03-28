@@ -16,6 +16,8 @@ const resources = {
       logout: 'Logout',
       darkMode: 'Dark Mode',
       language: 'Language',
+      settings: 'Settings',
+      options: 'Options',
     },
   },
   pt: {
@@ -32,6 +34,8 @@ const resources = {
       logout: 'Sair',
       darkMode: 'Modo Escuro',
       language: 'Idioma',
+      settings: 'Configurações',
+      options: 'Opções',
     },
   },
 };

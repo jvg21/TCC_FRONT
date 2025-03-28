@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import { LogIn } from 'lucide-react';
+import Logo from '../assets/image/logo.png'
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -25,7 +26,8 @@ export const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
         <div className="text-center">
-          <LogIn className="mx-auto h-12 w-12 text-blue-500" />
+          <img src={Logo} className="mx-auto h-40 w-40 text-blue-500" />
+
           <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">{t('login')}</h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
