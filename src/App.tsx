@@ -5,6 +5,7 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
 import { useAuthStore } from './store/authStore';
 import './i18n';
+import { EmployeeManagement } from './pages/User';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
@@ -25,6 +26,8 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path='/adm' element={<EmployeeManagement/>}/>
+      
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
