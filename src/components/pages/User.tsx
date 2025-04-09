@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2, Search, X } from 'lucide-react';
-import { NavBar } from '../components/NavBar';
+import { NavBar } from '../NavBar';
 
 interface Employee {
   id: string;
@@ -27,6 +27,7 @@ export const EmployeeManagement = () => {
   const [department, setDepartment] = useState('');
   const [position, setPosition] = useState('');
   const [hireDate, setHireDate] = useState('');
+  
 
   // Mock departments
   const departments = ['IT', 'HR', 'Finance', 'Marketing', 'Sales'];

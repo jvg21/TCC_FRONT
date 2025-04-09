@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Login } from './pages/Login';
-import { ForgotPassword } from './pages/ForgotPassword';
-import { Dashboard } from './pages/Dashboard';
+import { ForgotPassword } from './components/pages/ForgotPassword';
+import { Dashboard } from './components/pages/Dashboard';
 import { useAuthStore } from './store/authStore';
 import './i18n';
-import { EmployeeManagement } from './pages/User';
+import { EmployeeManagement } from './components/pages/User';
+import { Login } from './components/pages/Login';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
