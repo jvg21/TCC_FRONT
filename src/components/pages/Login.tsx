@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../store/authStore';
-import { LogIn } from 'lucide-react';
-import Logo from '../assets/image/logo.png'
+import { useAuthStore } from '../../store/authStore';
+import Logo from '../../assets/image/logo.png'
 
 export const Login = () => {
   const [email, setEmail] = useState('');
