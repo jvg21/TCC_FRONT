@@ -5,9 +5,11 @@ import { ForgotPassword } from './components/pages/ForgotPassword';
 import { Dashboard } from './components/pages/Dashboard';
 import { useAuthStore } from './store/authStore';
 import './i18n';
-import { EmployeeManagement } from './components/pages/User';
 import { Login } from './components/pages/Login';
 import { Notification } from './components/Notification';
+import { SectorManagement } from './components/pages/SectorManagement';
+import { CompaniesManagement } from './pages/Companies';
+import { EmployeeManagement } from './components/pages/User';
 
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -30,28 +32,28 @@ function App() {
             </PrivateRoute>
           }
         />
-        {/* <Route 
-          path='/adm' 
+        <Route 
+          path='/companies/employee' 
           element={
             <PrivateRoute>
               <EmployeeManagement/>
             </PrivateRoute>
           }
-        /> */}
+        />
         <Route 
           path='/companies/sectors' 
           element={
-            // <PrivateRoute>
+            <PrivateRoute>
               <SectorManagement/>
-            // </PrivateRoute>
+            </PrivateRoute>
           }
         />
         <Route 
           path='/companies' 
           element={
-            // <PrivateRoute>
+            <PrivateRoute>
               <CompaniesManagement/>
-            // </PrivateRoute>
+             </PrivateRoute>
           }
         />
         <Route path="/" element={<Navigate to="/login" />} />
