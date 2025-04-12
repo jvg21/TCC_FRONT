@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { Company, CompanyState } from '../types/company';
+import { getCookie } from '../utils/cookies';
+import { getNotificationStore } from './notificationStore';
 
 export const useCompanyStore = create<CompanyState>((set, get) => ({
   companies: [],
@@ -8,88 +10,164 @@ export const useCompanyStore = create<CompanyState>((set, get) => ({
 
   fetchCompanies: async () => {
     set({ loading: true, error: null });
+    const token = getCookie('authToken');
+
     try {
-      // Simulate API call
-      const mockCompanies: Company[] = [
-        {
-          id: '1',
-          name: 'Acme Corp',
-          cnpj: '12.345.678/0001-90',
-          email: 'contact@acme.com',
-          phone: '(11) 99999-9999',
-          address: '123 Main St, São Paulo, SP'
-        },
-        {
-          id: '2',
-          name: 'TechSolutions Inc',
-          cnpj: '98.765.432/0001-10',
-          email: 'info@techsolutions.com',
-          phone: '(21) 88888-8888',
-          address: '456 Innovation Ave, Rio de Janeiro, RJ'
-        },
-      ];
-      
-      setTimeout(() => {
-        set({ companies: mockCompanies, loading: false });
-      }, 500); // Simulate network delay
+      const response = await fetch('https://localhost:7198/Company/GetCompanies', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.erro) {
+        // API indica erro
+        throw new Error(data.mensagem || 'Failed to fetch companies');
+      }
+
+      set({ companies: data.objeto, loading: false });
+
     } catch (error) {
-      set({ error: 'Failed to fetch companies', loading: false });
+      let errorMessage = 'Failed to fetch companies';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      set({ error: errorMessage, loading: false });
+      getNotificationStore().showError(errorMessage);
     }
   },
 
-  getCompany: (id: string) => {
-    return get().companies.find(company => company.id === id);
+  getCompany: (id: number) => {
+    return get().companies.find(company => company.companyId === id);
   },
 
-  addCompany: async (companyData: Omit<Company, 'id'>) => {
+  addCompany: async (companyData: Omit<Company, 'companyId' | 'isActive' | 'createdAt' | 'updatedAt'>) => {
     set({ loading: true, error: null });
+    const token = getCookie('authToken');
+
     try {
-      // Simulate API call
-      const newCompany: Company = {
-        id: Date.now().toString(),
-        ...companyData
+      const newCompany = {
+        ...companyData,
+        isActive: true, // valor padrão para novas empresas
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
-      
-      setTimeout(() => {
-        set(state => ({ 
-          companies: [...state.companies, newCompany],
-          loading: false 
-        }));
-      }, 500);
+
+      const response = await fetch('https://localhost:7198/Company/AddCompany', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...newCompany })
+      });
+
+      const data = await response.json();
+
+      if (data.erro) {
+        throw new Error(data.mensagem || 'Failed to add company');
+      }
+
+      // Atualiza o estado com a nova empresa
+      set(state => ({
+        companies: [...state.companies, data.objeto],
+        loading: false
+      }));
+
+      getNotificationStore().showNotification(data.mensagem, 'success');
+
+      return data.objeto;
+
     } catch (error) {
-      set({ error: 'Failed to add company', loading: false });
+      let errorMessage = 'Failed to add company';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      set({ error: errorMessage, loading: false });
+      getNotificationStore().showError(errorMessage);
+      throw error; // propagar o erro para o chamador
     }
   },
 
-  updateCompany: async (id: string, companyData: Partial<Company>) => {
+  updateCompany: async (id: number, companyData: Partial<Company>) => {
     set({ loading: true, error: null });
+    const token = getCookie('authToken');
     try {
-      // Simulate API call
-      setTimeout(() => {
-        set(state => ({
-          companies: state.companies.map(company => 
-            company.id === id ? { ...company, ...companyData } : company
-          ),
-          loading: false
-        }));
-      }, 500);
+      const updateCompany = {
+        ...companyData,
+        companyId: id,
+        updatedAt: new Date()
+      };
+      const response = await fetch('https://localhost:7198/Company/UpdateCompany', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...updateCompany })
+      });
+
+      const data = await response.json();
+
+      if (data.erro) {
+        throw new Error(data.mensagem || 'Failed to update company');
+      }
+      set(state => ({
+        companies: state.companies.map(company =>
+          company.companyId === id ? { ...company, ...companyData } : company
+        ),
+        loading: false
+      }));
+      getNotificationStore().showNotification(data.mensagem, 'success');
+
+
     } catch (error) {
-      set({ error: 'Failed to update company', loading: false });
+      let errorMessage = 'Failed to update company';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      set({ error: errorMessage, loading: false });
+      getNotificationStore().showError(errorMessage);
+      throw error; // propagar o erro para o chamador
     }
   },
 
-  deleteCompany: async (id: string) => {
+  deleteCompany: async (id: number) => {
     set({ loading: true, error: null });
+    const token = getCookie('authToken');
     try {
-      // Simulate API call
-      setTimeout(() => {
-        set(state => ({
-          companies: state.companies.filter(company => company.id !== id),
-          loading: false
-        }));
-      }, 500);
+      const response = await fetch(`https://localhost:7198/Company/DeleteCompany/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.erro) {
+        throw new Error(data.mensagem || 'Failed to update company');
+      } 
+      set(state => ({
+        companies: state.companies.map(company =>
+          company.companyId === id ? { ...company,isActive:!company.isActive} : company
+        ),
+        loading: false
+      }));
+      getNotificationStore().showNotification(data.mensagem, 'success');
+
     } catch (error) {
-      set({ error: 'Failed to delete company', loading: false });
+      let errorMessage = 'Failed to update company';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      set({ error: errorMessage, loading: false });
+      getNotificationStore().showError(errorMessage);
+      throw error;
     }
   }
 }));

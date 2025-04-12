@@ -8,8 +8,9 @@ import './i18n';
 import { Login } from './components/pages/Login';
 import { Notification } from './components/Notification';
 import { SectorManagement } from './components/pages/SectorManagement';
-import { CompaniesManagement } from './pages/Companies';
 import { EmployeeManagement } from './components/pages/User';
+import { AuthProvider } from './context/AuthProvider';
+import { CompaniesManagement } from './components/pages/Companies';
 
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -19,48 +20,48 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-        <>
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route 
-          path='/companies/employee' 
-          element={
-            <PrivateRoute>
-              <EmployeeManagement/>
-            </PrivateRoute>
-          }
-        />
-        <Route 
-          path='/companies/sectors' 
-          element={
-            <PrivateRoute>
-              <SectorManagement/>
-            </PrivateRoute>
-          }
-        />
-        <Route 
-          path='/companies' 
-          element={
-            <PrivateRoute>
-              <CompaniesManagement/>
-             </PrivateRoute>
-          }
-        />
-        <Route path="/" element={<Navigate to="/login" />} />
-      </Routes>
-    </Router>
-        <Notification />
-        </>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/companies/employee'
+            element={
+              <PrivateRoute>
+                <EmployeeManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/companies/sectors'
+            element={
+              <PrivateRoute>
+                <SectorManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/companies'
+            element={
+              <PrivateRoute>
+                <CompaniesManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/login" />} />
+        </Routes>
+      </Router>
+      <Notification />
+    </AuthProvider>
 
   );
 }

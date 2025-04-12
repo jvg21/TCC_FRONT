@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { useCompanyStore } from '../store/companyStore';
 import { Company } from '../types/company';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface CompanyFormProps {
   company?: Company;
@@ -11,16 +11,17 @@ interface CompanyFormProps {
 }
 
 export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
-  const { t } = useTranslation();
-  const { addCompany, updateCompany } = useCompanyStore();
+  const { t } = useLanguage();
+  const { addCompany, updateCompany,deleteCompany } = useCompanyStore();
   const isEditing = !!company;
 
   const [formData, setFormData] = useState({
     name: '',
-    cnpj: '',
+    taxId: '',
     email: '',
     phone: '',
-    address: '',
+    adress: '',
+    zipCode: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -29,19 +30,27 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
     if (company) {
       setFormData({
         name: company.name,
-        cnpj: company.cnpj,
+        taxId: company.taxId,
         email: company.email,
         phone: company.phone,
-        address: company.address,
+        adress: company.adress,
+        zipCode: company.zipCode,
       });
     }
   }, [company]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
     
-    // Clear error when field is edited
+    // Atualizar o formData com o novo valor
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+    
+    // Limpar erro quando o campo é editado
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
@@ -54,10 +63,10 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
       newErrors.name = t('nameRequired');
     }
     
-    if (!formData.cnpj.trim()) {
-      newErrors.cnpj = t('cnpjRequired');
-    } else if (!/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(formData.cnpj)) {
-      newErrors.cnpj = t('invalidCnpj');
+    if (!formData.taxId.trim()) {
+      newErrors.taxId = t('taxIdRequired');
+    } else if (!/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(formData.taxId)) {
+      newErrors.taxId = t('invalidTaxId');
     }
     
     if (!formData.email.trim()) {
@@ -70,12 +79,35 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
       newErrors.phone = t('phoneRequired');
     }
     
-    if (!formData.address.trim()) {
-      newErrors.address = t('addressRequired');
+    if (!formData.adress.trim()) {
+      newErrors.adress = t('adressRequired');
+    }
+    
+    if (!formData.zipCode.trim()) {
+      newErrors.zipCode = t('zipCodeRequired');
+    } else if (!/^\d{5}-\d{3}$/.test(formData.zipCode)) {
+      newErrors.zipCode = t('invalidZipCode');
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Função para limpar os dados antes de enviar para a API
+  const cleanFormData = () => {
+    // Cria uma cópia do formData para não modificar o estado diretamente
+    const cleanedData = { ...formData };
+    
+    // Remove pontuações do CNPJ/taxId: 00.000.000/0000-00 -> 00000000000000
+    cleanedData.taxId = cleanedData.taxId.replace(/[^\d]/g, '');
+    
+    // Remove pontuações do telefone: (00) 00000-0000 -> 00000000000
+    cleanedData.phone = cleanedData.phone.replace(/[^\d]/g, '');
+    
+    // Remove pontuações do CEP: 00000-000 -> 00000000
+    cleanedData.zipCode = cleanedData.zipCode.replace(/[^\d]/g, '');
+    
+    return cleanedData;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,10 +118,13 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
     }
     
     try {
+      // Limpa os dados antes de enviar para a API
+      const cleanedData = cleanFormData();
+      
       if (isEditing && company) {
-        await updateCompany(company.id, formData);
+        await updateCompany(company.companyId, cleanedData);
       } else {
-        await addCompany(formData);
+        await addCompany(cleanedData);
       }
       onClose();
     } catch (error) {
@@ -109,6 +144,7 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+            aria-label={t('close')}
           >
             <X className="h-6 w-6" />
           </button>
@@ -134,21 +170,24 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
             </div>
 
             <div>
-              <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('cnpj')}*
+              <label htmlFor="taxId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t('taxId')}*
               </label>
               <input
-                id="cnpj"
-                name="cnpj"
+                id="taxId"
+                name="taxId"
                 type="text"
                 placeholder="00.000.000/0000-00"
-                value={formData.cnpj}
+                value={formData.taxId}
                 onChange={handleChange}
                 className={`mt-1 block w-full px-3 py-2 border ${
-                  errors.cnpj ? 'border-red-500' : 'border-gray-300'
+                  errors.taxId ? 'border-red-500' : 'border-gray-300'
                 } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
               />
-              {errors.cnpj && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.cnpj}</p>}
+              {errors.taxId && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.taxId}</p>}
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {t('formatInfo')}: 00.000.000/0000-00
+              </p>
             </div>
 
             <div>
@@ -184,23 +223,49 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
                 } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
               />
               {errors.phone && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone}</p>}
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {t('formatInfo')}: (00) 00000-0000
+              </p>
             </div>
 
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('address')}*
-              </label>
-              <textarea
-                id="address"
-                name="address"
-                rows={3}
-                value={formData.address}
-                onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border ${
-                  errors.address ? 'border-red-500' : 'border-gray-300'
-                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-              />
-              {errors.address && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.address}</p>}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="adress" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('adress')}*
+                </label>
+                <input
+                  id="adress"
+                  name="adress"
+                  type="text"
+                  value={formData.adress}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.adress ? 'border-red-500' : 'border-gray-300'
+                  } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+                />
+                {errors.adress && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.adress}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('zipCode')}*
+                </label>
+                <input
+                  id="zipCode"
+                  name="zipCode"
+                  type="text"
+                  placeholder="00000-000"
+                  value={formData.zipCode}
+                  onChange={handleChange}
+                  className={`mt-1 block w-full px-3 py-2 border ${
+                    errors.zipCode ? 'border-red-500' : 'border-gray-300'
+                  } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+                />
+                {errors.zipCode && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.zipCode}</p>}
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {t('formatInfo')}: 00000-000
+                </p>
+              </div>
             </div>
           </div>
 
