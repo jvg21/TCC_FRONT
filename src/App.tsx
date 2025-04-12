@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
 import { ForgotPassword } from './components/pages/ForgotPassword';
 import { Dashboard } from './components/pages/Dashboard';
 import { useAuthStore } from './store/authStore';
@@ -8,6 +9,7 @@ import { EmployeeManagement } from './components/pages/User';
 import { Login } from './components/pages/Login';
 import { Notification } from './components/Notification';
 
+
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
@@ -15,26 +17,49 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route path='/adm' element={<EmployeeManagement/>}/>
-        
-          <Route path="/" element={<Navigate to="/login" />} />
-        </Routes>
-      </Router>
-      <Notification />
-    </>
+        <>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        {/* <Route 
+          path='/adm' 
+          element={
+            <PrivateRoute>
+              <EmployeeManagement/>
+            </PrivateRoute>
+          }
+        /> */}
+        <Route 
+          path='/companies/sectors' 
+          element={
+            // <PrivateRoute>
+              <SectorManagement/>
+            // </PrivateRoute>
+          }
+        />
+        <Route 
+          path='/companies' 
+          element={
+            // <PrivateRoute>
+              <CompaniesManagement/>
+            // </PrivateRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/login" />} />
+      </Routes>
+    </Router>
+        <Notification />
+        </>
+
   );
 }
 

@@ -4,13 +4,16 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   en: {
     translation: {
+    
       login: 'Login',
       register: 'Register',
       forgotPassword: 'Forgot Password',
       email: 'Email',
       password: 'Password',
-      name: 'Name',
       submit: 'Submit',
+      
+     
+      name: 'Name',
       dashboard: 'Dashboard',
       welcome: 'Welcome',
       logout: 'Logout',
@@ -18,17 +21,36 @@ const resources = {
       language: 'Language',
       settings: 'Settings',
       options: 'Options',
+      
+      
+      employeeManagement: 'Employee Management',
+      addEmployee: 'Add Employee',
+      editEmployee: 'Edit Employee',
+      deleteEmployee: 'Delete Employee',
+      searchEmployees: 'Search employees...',
+      confirmDelete: 'Are you sure you want to delete this employee?',
+      cancel: 'Cancel',
+      save: 'Save',
+      department: 'Department',
+      position: 'Position',
+      hireDate: 'Hire Date',
+      actions: 'Actions',
+      selectDepartment: 'Select department',
+      sectorManagement: 'Sector Management'
     },
   },
   pt: {
     translation: {
+      
       login: 'Entrar',
       register: 'Cadastrar',
       forgotPassword: 'Esqueceu a Senha',
       email: 'Email',
       password: 'Senha',
-      name: 'Nome',
       submit: 'Enviar',
+      
+      
+      name: 'Nome',
       dashboard: 'Painel',
       welcome: 'Bem-vindo',
       logout: 'Sair',
@@ -36,6 +58,23 @@ const resources = {
       language: 'Idioma',
       settings: 'Configurações',
       options: 'Opções',
+      
+      
+      employeeManagement: 'Gestão de Funcionários',
+      addEmployee: 'Adicionar Funcionário',
+      editEmployee: 'Editar Funcionário',
+      deleteEmployee: 'Excluir Funcionário',
+      searchEmployees: 'Buscar funcionários...',
+      confirmDelete: 'Tem certeza que deseja excluir este funcionário?',
+      cancel: 'Cancelar',
+      save: 'Salvar',
+      department: 'Departamento',
+      position: 'Cargo',
+      hireDate: 'Data de Contratação',
+      actions: 'Ações',
+      selectDepartment: 'Selecione o departamento',
+
+      sectorManagement: 'Gerenciamento de setores'
     },
   },
 };
@@ -44,7 +83,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en',
+    lng: localStorage.getItem('i18nextLng') || 'en',
+    fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
     },
