@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '../store/authStore';
-import { NavBar } from '../components/NavBar';
+import { useAuthStore } from '../../store/authStore';
+import { NavBar } from '../NavBar';
 
 export const Dashboard = () => {
   const { user } = useAuthStore();
