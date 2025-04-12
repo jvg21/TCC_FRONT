@@ -6,16 +6,22 @@ import { KeyRound } from 'lucide-react';
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { resetPassword } = useAuthStore();
   const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    
     try {
+      // Reset password will handle showing notifications
       await resetPassword(email);
-      alert('Password reset email sent!');
     } catch (error) {
+      // Error notification is already shown by the resetPassword function
       console.error('Password reset failed:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -49,9 +55,10 @@ export const ForgotPassword = () => {
 
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            disabled={isLoading}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {t('submit')}
+            {isLoading ? t('loading') : t('submit')}
           </button>
         </form>
       </div>
