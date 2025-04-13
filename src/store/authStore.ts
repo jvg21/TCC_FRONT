@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { AuthState } from '../types/auth';
-import { User } from '../types/User';
+import { User } from '../types/user';
 import { getNotificationStore } from './notificationStore';
 import { jwtDecode } from 'jwt-decode';
+import { setCookie, getCookie, eraseCookie } from '../utils/cookies';
 
 interface ApiResponse {
   mensagem: string;
@@ -20,9 +21,44 @@ interface TokenPayload {
   iat: number;
 }
 
+// Check if user is already authenticated on store initialization
+const getInitialAuthState = (): { user: User | null, isAuthenticated: boolean } => {
+  const token = getCookie('authToken');
+  
+  if (token) {
+    try {
+      const tokenPayload: TokenPayload = jwtDecode(token);
+      
+      // Check if token is expired
+      const currentTime = Date.now() / 1000;
+      if (tokenPayload.exp < currentTime) {
+        eraseCookie('authToken');
+        return { user: null, isAuthenticated: false };
+      }
+      
+      // Extract user information from token
+      const user: User = {
+        id: tokenPayload.nameid,
+        name: tokenPayload.unique_name,
+        email: '' // We don't have the email in the token
+      };
+      
+      return { user, isAuthenticated: true };
+    } catch (err) {
+      console.error('Error decoding token:', err);
+      eraseCookie('authToken');
+    }
+  }
+  
+  return { user: null, isAuthenticated: false };
+};
+
+// Create the auth store with initial state from cookies
+const initialState = getInitialAuthState();
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
+  user: initialState.user,
+  isAuthenticated: initialState.isAuthenticated,
   
   login: async (email: string, password: string) => {
     try {
@@ -54,13 +90,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         const user: User = {
           id: tokenPayload.nameid,
           name: tokenPayload.unique_name,
-          //profile
-          //companyid
           email: email // O token não tem o email, então usamos o que o usuário digitou
         };
         
-        // Armazenar o token no localStorage para uso em futuras requisições
-        localStorage.setItem('authToken', data.objeto.token);
+        // Store token in cookies instead of localStorage
+        setCookie('authToken', data.objeto.token);
         
         // Atualizar o estado
         set({ user, isAuthenticated: true });
@@ -72,14 +106,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       } catch (err) {
         console.error('Erro ao decodificar token:', err);
-        // getNotificationStore().showError('Erro ao processar dados de autenticação');
         throw new Error('Erro ao processar dados de autenticação');
       }
 
     } catch (error) {
       console.error('Login error:', error);
       if (error instanceof Error){
-
         getNotificationStore().showError(error.message);
       }
       
@@ -88,8 +120,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   
   logout: () => {
-    // Remover token do localStorage
-    localStorage.removeItem('authToken');
+    // Remove token from cookies instead of localStorage
+    eraseCookie('authToken');
     
     set({ user: null, isAuthenticated: false });
     getNotificationStore().showNotification("Você foi desconectado", "info");

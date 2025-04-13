@@ -1,25 +1,21 @@
-import React, { useState } from 'react';
+// src/components/NavBar.tsx
+import { useState } from 'react';
 import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
-import { useTheme } from '../hooks/useTheme';
+import { useLanguage } from '../hooks/useLanguage';
+import { ThemeToggle } from './ThemeToggle';
 
 export const NavBar = () => {
     const { logout, user } = useAuthStore();
     const navigate = useNavigate();
-    const { t, i18n } = useTranslation();
-    const { isDarkMode, toggleTheme } = useTheme();
+    const { t } = useLanguage();
+    const { toggleLanguage, currentLanguage } = useLanguage();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     
     const handleLogout = () => {
         logout();
         navigate('/login');
-    };
-
-    const toggleLanguage = () => {
-        const newLang = i18n.language === 'en' ? 'pt' : 'en';
-        i18n.changeLanguage(newLang);
     };
 
     const toggleDropdown = () => {
@@ -30,7 +26,7 @@ export const NavBar = () => {
         <nav className="bg-white dark:bg-gray-800 shadow-lg">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
-                    <div className="flex items-center" onClick={()=>{navigate('/dashboard')}}>
+                    <div className="flex items-center cursor-pointer" onClick={()=>{navigate('/dashboard')}}>
                         <LayoutDashboard className="h-8 w-8 text-blue-500"  />
                         <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
                             {t('dashboard')}
@@ -66,24 +62,14 @@ export const NavBar = () => {
                                         {t('settings')}
                                     </div>
                                     
-                                    <button
-                                        onClick={toggleTheme}
-                                        className="w-full text-left flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
-                                    >
-                                        {isDarkMode ? (
-                                            <Moon className="h-4 w-4" />
-                                        ) : (
-                                            <Moon className="h-4 w-4 text-gray-500" />
-                                        )}
-                                        <span>{t('darkMode')}</span>
-                                    </button>
+                                  <ThemeToggle/>
                                     
                                     <button
                                         onClick={toggleLanguage}
                                         className="w-full text-left flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
                                     >
                                         <Globe className="h-4 w-4" />
-                                        <span>{t('language')}</span>
+                                        <span>{t('language')} ({currentLanguage.toUpperCase()})</span>
                                     </button>
                                     
                                     <button
