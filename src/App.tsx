@@ -7,7 +7,7 @@ import { useAuthStore } from './store/authStore';
 import './i18n';
 import { Login } from './components/pages/Login';
 import { Notification } from './components/Notification';
-import { SectorManagement } from './components/pages/SectorManagement';
+import { GroupManagement } from './components/pages/Group';
 import { EmployeeManagement } from './components/pages/User';
 import { AuthProvider } from './context/AuthProvider';
 import { CompaniesManagement } from './components/pages/Companies';
@@ -42,10 +42,10 @@ function App() {
             }
           />
           <Route
-            path='/companies/sectors'
+            path='/companies/groups'
             element={
               <PrivateRoute>
-                <SectorManagement />
+                <GroupManagement />
               </PrivateRoute>
             }
           />
