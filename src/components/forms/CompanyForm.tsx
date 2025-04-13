@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { useCompanyStore } from '../store/companyStore';
-import { Company } from '../types/company';
-import { useLanguage } from '../hooks/useLanguage';
+import { useCompanyStore } from '../../store/companyStore';
+import { Company } from '../../types/company';
+import { useLanguage } from '../../hooks/useLanguage';
 
 interface CompanyFormProps {
   company?: Company;

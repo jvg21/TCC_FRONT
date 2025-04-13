@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { AuthState } from '../types/auth';
-import { User } from '../types/User';
+import { User } from '../types/user';
 import { getNotificationStore } from './notificationStore';
 import { jwtDecode } from 'jwt-decode';
 import { setCookie, getCookie, eraseCookie } from '../utils/cookies';
