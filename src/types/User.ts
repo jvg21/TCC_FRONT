@@ -1,5 +1,8 @@
 export interface User {
-    id: string;
-    email: string;
-    name: string;
-  }
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  position: string;
+  hireDate: string;
+}
