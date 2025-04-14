@@ -1,4 +1,5 @@
-import React from 'react';
+// src/App.tsx (Atualizado com inicialização do tema)
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import { ForgotPassword } from './components/pages/ForgotPassword';
@@ -6,12 +7,23 @@ import { Dashboard } from './components/pages/Dashboard';
 import { useAuthStore } from './store/authStore';
 import './i18n';
 import { Login } from './components/pages/Login';
-import { Notification } from './components/Notification';
 import { GroupManagement } from './components/pages/Group';
-import { EmployeeManagement } from './components/pages/User';
+import { EmployeeManagement, UserManagement } from './components/pages/User';
 import { AuthProvider } from './context/AuthProvider';
 import { CompaniesManagement } from './components/pages/Companies';
+import { Notification } from './components/utils/Notification';
 
+// Inicialização do tema no carregamento da aplicação
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('theme');
+  
+  if (savedTheme === 'dark' || 
+      (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+};
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuthStore();
@@ -19,6 +31,11 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  // Inicializar o tema quando o aplicativo é carregado
+  useEffect(() => {
+    initTheme();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
@@ -34,10 +51,10 @@ function App() {
             }
           />
           <Route
-            path='/companies/employee'
+            path='/companies/user'
             element={
               <PrivateRoute>
-                <EmployeeManagement />
+                <UserManagement />
               </PrivateRoute>
             }
           />
@@ -62,7 +79,6 @@ function App() {
       </Router>
       <Notification />
     </AuthProvider>
-
   );
 }
 

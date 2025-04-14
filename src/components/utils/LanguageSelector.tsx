@@ -1,6 +1,6 @@
 // src/components/LanguageSelector.tsx
 import { Globe } from 'lucide-react';
-import { useLanguage } from '../hooks/useLanguage';
+import { useLanguage } from '../../hooks/useLanguage';
 
 export const LanguageSelector = () => {
   const { toggleLanguage, t, currentLanguage } = useLanguage();

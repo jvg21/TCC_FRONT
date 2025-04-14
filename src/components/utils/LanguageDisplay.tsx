@@ -1,5 +1,6 @@
 // src/components/LanguageDisplay.tsx
-import { useLanguage } from '../hooks/useLanguage';
+
+import { useLanguage } from "../../hooks/useLanguage";
 
 export const LanguageDisplay = () => {
   const { currentLanguage } = useLanguage();

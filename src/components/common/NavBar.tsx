@@ -1,16 +1,17 @@
-// src/components/NavBar.tsx
+// src/components/NavBar.tsx (Corrigido)
 import { useState } from 'react';
-import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Globe } from 'lucide-react';
+import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
-import { useLanguage } from '../hooks/useLanguage';
-import { ThemeToggle } from './ThemeToggle';
+import { useLanguage } from '../../hooks/useLanguage';
+import { useAuthStore } from '../../store/authStore';
+import { useTheme } from '../../hooks/useTheme';
 
 export const NavBar = () => {
     const { logout, user } = useAuthStore();
     const navigate = useNavigate();
     const { t } = useLanguage();
     const { toggleLanguage, currentLanguage } = useLanguage();
+    const { isDarkMode, toggleTheme } = useTheme();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     
     const handleLogout = () => {
@@ -19,7 +20,17 @@ export const NavBar = () => {
     };
 
     const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
+        setIsDropdownOpen(prevState => !prevState);
+    };
+
+    const handleItemClick = (callback: () => void) => {
+        callback();
+        // Não fechar o dropdown automaticamente após clicar em um item
+        // para evitar que o usuário perca o contexto
+    };
+
+    const handleCloseDropdown = () => {
+        setIsDropdownOpen(false);
     };
 
     return (
@@ -44,13 +55,17 @@ export const NavBar = () => {
                             <button 
                                 onClick={toggleDropdown}
                                 className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                aria-expanded={isDropdownOpen}
+                                aria-haspopup="true"
                             >
                                 <User className="h-5 w-5" />
                                 <ChevronDown className="h-4 w-4" />
                             </button>
                             
                             {isDropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-700 rounded-lg shadow-xl z-20">
+                                <div 
+                                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-700 rounded-lg shadow-xl z-20"
+                                >
                                     <div className="py-1 md:hidden">
                                         <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
                                             {t('welcome')}, {user?.name}!
@@ -62,10 +77,25 @@ export const NavBar = () => {
                                         {t('settings')}
                                     </div>
                                     
-                                  <ThemeToggle/>
+                                    <button
+                                        onClick={() => handleItemClick(toggleTheme)}
+                                        className="w-full text-left flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                    >
+                                        {isDarkMode ? (
+                                            <>
+                                                <Sun className="h-4 w-4" />
+                                                <span>{t('lightMode')}</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Moon className="h-4 w-4" />
+                                                <span>{t('darkMode')}</span>
+                                            </>
+                                        )}
+                                    </button>
                                     
                                     <button
-                                        onClick={toggleLanguage}
+                                        onClick={() => handleItemClick(toggleLanguage)}
                                         className="w-full text-left flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
                                     >
                                         <Globe className="h-4 w-4" />

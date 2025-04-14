@@ -1,7 +1,6 @@
-import React from 'react';
 import { X, AlertCircle, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNotificationStore } from '../store/notificationStore';
+import { useNotificationStore } from '../../store/notificationStore';
 
 export const Notification = () => {
   const { t } = useTranslation();

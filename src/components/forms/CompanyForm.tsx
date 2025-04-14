@@ -1,8 +1,10 @@
+// src/components/forms/CompanyForm.tsx (Refactored)
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import { useCompanyStore } from '../../store/companyStore';
 import { Company } from '../../types/company';
 import { useLanguage } from '../../hooks/useLanguage';
+import { Modal } from './Modal';
+import { FormInput } from './FormField';
 
 interface CompanyFormProps {
   company?: Company;
@@ -12,7 +14,7 @@ interface CompanyFormProps {
 
 export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
   const { t } = useLanguage();
-  const { addCompany, updateCompany,deleteCompany } = useCompanyStore();
+  const { addCompany, updateCompany, deleteCompany } = useCompanyStore();
   const isEditing = !!company;
 
   const [formData, setFormData] = useState({
@@ -44,13 +46,13 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
   ) => {
     const { name, value } = e.target;
     
-    // Atualizar o formData com o novo valor
+    // Update form data with new value
     setFormData({
       ...formData,
       [name]: value
     });
     
-    // Limpar erro quando o campo é editado
+    // Clear error when field is edited
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
@@ -93,18 +95,17 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Função para limpar os dados antes de enviar para a API
+  // Clean form data before sending to API
   const cleanFormData = () => {
-    // Cria uma cópia do formData para não modificar o estado diretamente
     const cleanedData = { ...formData };
     
-    // Remove pontuações do CNPJ/taxId: 00.000.000/0000-00 -> 00000000000000
+    // Remove punctuation from taxId: 00.000.000/0000-00 -> 00000000000000
     cleanedData.taxId = cleanedData.taxId.replace(/[^\d]/g, '');
     
-    // Remove pontuações do telefone: (00) 00000-0000 -> 00000000000
+    // Remove punctuation from phone: (00) 00000-0000 -> 00000000000
     cleanedData.phone = cleanedData.phone.replace(/[^\d]/g, '');
     
-    // Remove pontuações do CEP: 00000-000 -> 00000000
+    // Remove punctuation from zipCode: 00000-000 -> 00000000
     cleanedData.zipCode = cleanedData.zipCode.replace(/[^\d]/g, '');
     
     return cleanedData;
@@ -118,7 +119,7 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
     }
     
     try {
-      // Limpa os dados antes de enviar para a API
+      // Clean data before sending to API
       const cleanedData = cleanFormData();
       
       if (isEditing && company) {
@@ -135,157 +136,100 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-lg w-full p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white">
-            {isEditing ? t('editCompany') : t('addCompany')}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-            aria-label={t('close')}
-          >
-            <X className="h-6 w-6" />
-          </button>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={isEditing ? t('editCompany') : t('addCompany')}
+      maxWidth="lg"
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="space-y-4">
+          <FormInput
+            id="name"
+            name="name"
+            label={t('name')}
+            value={formData.name}
+            onChange={handleChange}
+            error={errors.name}
+            required
+          />
+
+          <FormInput
+            id="taxId"
+            name="taxId"
+            label={t('taxId')}
+            value={formData.taxId}
+            onChange={handleChange}
+            error={errors.taxId}
+            required
+            placeholder="00.000.000/0000-00"
+            helpText={`${t('formatInfo')}: 00.000.000/0000-00`}
+          />
+
+          <FormInput
+            id="email"
+            name="email"
+            label={t('email')}
+            value={formData.email}
+            onChange={handleChange}
+            error={errors.email}
+            type="email"
+            required
+          />
+
+          <FormInput
+            id="phone"
+            name="phone"
+            label={t('phone')}
+            value={formData.phone}
+            onChange={handleChange}
+            error={errors.phone}
+            required
+            placeholder="(00) 00000-0000"
+            helpText={`${t('formatInfo')}: (00) 00000-0000`}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormInput
+              id="adress"
+              name="adress"
+              label={t('adress')}
+              value={formData.adress}
+              onChange={handleChange}
+              error={errors.adress}
+              required
+            />
+
+            <FormInput
+              id="zipCode"
+              name="zipCode"
+              label={t('zipCode')}
+              value={formData.zipCode}
+              onChange={handleChange}
+              error={errors.zipCode}
+              required
+              placeholder="00000-000"
+              helpText={`${t('formatInfo')}: 00000-000`}
+            />
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('name')}*
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-              />
-              {errors.name && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="taxId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('taxId')}*
-              </label>
-              <input
-                id="taxId"
-                name="taxId"
-                type="text"
-                placeholder="00.000.000/0000-00"
-                value={formData.taxId}
-                onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border ${
-                  errors.taxId ? 'border-red-500' : 'border-gray-300'
-                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-              />
-              {errors.taxId && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.taxId}</p>}
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {t('formatInfo')}: 00.000.000/0000-00
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('email')}*
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
-                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-              />
-              {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t('phone')}*
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="text"
-                placeholder="(00) 00000-0000"
-                value={formData.phone}
-                onChange={handleChange}
-                className={`mt-1 block w-full px-3 py-2 border ${
-                  errors.phone ? 'border-red-500' : 'border-gray-300'
-                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-              />
-              {errors.phone && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone}</p>}
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {t('formatInfo')}: (00) 00000-0000
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="adress" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {t('adress')}*
-                </label>
-                <input
-                  id="adress"
-                  name="adress"
-                  type="text"
-                  value={formData.adress}
-                  onChange={handleChange}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.adress ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-                />
-                {errors.adress && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.adress}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {t('zipCode')}*
-                </label>
-                <input
-                  id="zipCode"
-                  name="zipCode"
-                  type="text"
-                  placeholder="00000-000"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.zipCode ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-                />
-                {errors.zipCode && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.zipCode}</p>}
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {t('formatInfo')}: 00000-000
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-            >
-              {t('cancel')}
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              {isEditing ? t('update') : t('create')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="mt-6 flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          >
+            {t('cancel')}
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            {isEditing ? t('update') : t('create')}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 };

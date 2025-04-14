@@ -1,8 +1,8 @@
-// src/hooks/useTheme.ts
+// src/hooks/useTheme.ts (Corrigido)
 import { useEffect, useState } from 'react';
 
 export const useTheme = () => {
-  // Initialize from localStorage if available, otherwise use system preference
+  // Inicializar a partir do localStorage se disponível, caso contrário usar preferência do sistema
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
@@ -11,7 +11,7 @@ export const useTheme = () => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
-  // Apply theme when component mounts or theme changes
+  // Aplicar tema quando o componente é montado ou o tema muda
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -22,19 +22,28 @@ export const useTheme = () => {
     }
   }, [isDarkMode]);
 
-  // Listen for system theme changes
+  // Escutar por mudanças no tema do sistema
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
-    // Only update if no theme is saved in localStorage
+    // Só atualizar se nenhum tema estiver salvo no localStorage
     const handleChange = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('theme')) {
+      const savedTheme = localStorage.getItem('theme');
+      if (!savedTheme) {
         setIsDarkMode(e.matches);
       }
     };
     
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    // Usar o método correto para adicionar event listeners
+    // que funciona em todos os navegadores
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } else {
+      // Fallback para navegadores mais antigos
+      mediaQuery.addListener(handleChange);
+      return () => mediaQuery.removeListener(handleChange);
+    }
   }, []);
 
   const toggleTheme = () => {
