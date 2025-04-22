@@ -1,5 +1,5 @@
 // src/components/pages/User.tsx (Refatorado)
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
 import { User } from '../../types/user';
@@ -14,7 +14,7 @@ import { ConfirmationModal } from '../forms/ConfirmationModal';
 
 export const UserManagement = () => {
   const { t } = useTranslation();
-  const { users, loading, error, fetchUsers, addUser, updateUser, deleteUser } = useUserStore();
+  const { users, loading, error, fetchUsers, addUser, updateUser, toggleUser } = useUserStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);

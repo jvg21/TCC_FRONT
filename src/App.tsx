@@ -8,7 +8,7 @@ import { useAuthStore } from './store/authStore';
 import './i18n';
 import { Login } from './components/pages/Login';
 import { GroupManagement } from './components/pages/Group';
-import { EmployeeManagement, UserManagement } from './components/pages/User';
+import {  UserManagement } from './components/pages/User';
 import { AuthProvider } from './context/AuthProvider';
 import { CompaniesManagement } from './components/pages/Companies';
 import { Notification } from './components/utils/Notification';

@@ -1,91 +1,86 @@
 // src/store/userStore.ts
 import { create } from 'zustand';
-import { User } from '../types/user';
+import { User, UserState } from '../types/user';
 import { getNotificationStore } from './notificationStore';
+import { getCookie } from '../utils/cookies';
 
-interface UserState {
-  users: User[];
-  loading: boolean;
-  error: string | null;
-  fetchUsers: () => Promise<void>;
-  addUser: (user: Omit<User, 'id'>) => Promise<User>;
-  updateUser: (id: string, userData: Partial<User>) => Promise<void>;
-  deleteUser: (id: string) => Promise<void>;
-}
-
-// Simulação de um backend - em um cenário real, isso seria substituído por chamadas de API
-let mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@company.com',
-    department: 'IT',
-    position: 'Software Developer',
-    hireDate: '2022-01-15',
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    email: 'jane.smith@company.com',
-    department: 'HR',
-    position: 'HR Manager',
-    hireDate: '2021-08-10',
-  },
-  {
-    id: '3',
-    name: 'Bob Johnson',
-    email: 'bob.johnson@company.com',
-    department: 'Finance',
-    position: 'Accountant',
-    hireDate: '2023-03-22',
-  },
-];
-
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>((set,get) => ({
   users: [],
   loading: false,
   error: null,
 
   fetchUsers: async () => {
     set({ loading: true, error: null });
-
-    try {
-      // Simulação de chamada de API
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      set({ users: mockUsers, loading: false });
-    } catch (error) {
-      let errorMessage = 'Failed to fetch users';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      set({ error: errorMessage, loading: false });
-      getNotificationStore().showError(errorMessage);
-    }
+        const token = getCookie('authToken');
+    
+        try {
+          const response = await fetch('https://localhost:7198/User/GetListUser', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+    
+          const data = await response.json();
+    
+          if (data.erro) {
+            // API indica erro
+            throw new Error(data.mensagem || 'Failed to fetch companies');
+          }
+    
+          set({ users: data.objeto, loading: false });
+    
+        } catch (error) {
+          let errorMessage = 'Failed to fetch companies';
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          set({ error: errorMessage, loading: false });
+          getNotificationStore().showError(errorMessage);
+        }
+  },
+  
+  getUser: (id: number) => {
+    return get().users.find(user => user.userId === id);
   },
 
-  addUser: async (userData: Omit<User, 'id'>) => {
+  addUser: async (userData: Omit<User, 'UserId' | 'isActive' | 'createdAt' | 'updatedAt'>) => {
     set({ loading: true, error: null });
+    const token = getCookie('authToken');
 
     try {
-      // Simulação de chamada de API
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const newUser: User = {
+      const newUser = {
         ...userData,
-        id: Date.now().toString(), // Gerar um ID único baseado no timestamp atual
+        isActive: true, // valor padrão para novas empresas
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
-      mockUsers = [...mockUsers, newUser];
-      
-      set(state => ({ 
-        users: [...state.users, newUser],
-        loading: false 
+      const response = await fetch('https://localhost:7198/User/AddUser', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...newUser })
+      });
+
+      const data = await response.json();
+
+      if (data.erro) {
+        throw new Error(data.mensagem || 'Failed to add user');
+      }
+
+      set(state => ({
+        users: [...state.users, data.objeto],
+        loading: false
       }));
 
-      getNotificationStore().showNotification('User added successfully', 'success');
-      
-      return newUser;
+      getNotificationStore().showNotification(data.mensagem, 'success');
+
+      return data.objeto;
+
     } catch (error) {
       let errorMessage = 'Failed to add user';
       if (error instanceof Error) {
@@ -93,57 +88,83 @@ export const useUserStore = create<UserState>((set) => ({
       }
       set({ error: errorMessage, loading: false });
       getNotificationStore().showError(errorMessage);
-      throw error;
+      throw error; // propagar o erro para o chamador
     }
   },
 
-  updateUser: async (id: string, userData: Partial<User>) => {
+  updateUser: async (id: number, userData: Partial<User>) => {
     set({ loading: true, error: null });
-
+    const token = getCookie('authToken');
     try {
-      // Simulação de chamada de API
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const updateCompany = {
+        ...userData,
+        companyId: id,
+        updatedAt: new Date()
+      };
+      const response = await fetch('https://localhost:7198/User/UpdateUser', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...updateCompany })
+      });
 
-      mockUsers = mockUsers.map(user => 
-        user.id === id ? { ...user, ...userData } : user
-      );
+      const data = await response.json();
 
+      if (data.erro) {
+        throw new Error(data.mensagem || 'Failed to update company');
+      }
       set(state => ({
-        users: state.users.map(user =>
-          user.id === id ? { ...user, ...userData } : user
+        companies: state.users.map(user =>
+          user.userId === id ? { ...user, ...userData } : user
         ),
         loading: false
       }));
+      getNotificationStore().showNotification(data.mensagem, 'success');
 
-      getNotificationStore().showNotification('User updated successfully', 'success');
+
     } catch (error) {
-      let errorMessage = 'Failed to update user';
+      let errorMessage = 'Failed to update company';
       if (error instanceof Error) {
         errorMessage = error.message;
       }
       set({ error: errorMessage, loading: false });
       getNotificationStore().showError(errorMessage);
-      throw error;
+      throw error; // propagar o erro para o chamador
     }
   },
-
-  deleteUser: async (id: string) => {
+  toggleUser: async (id: number) => {
     set({ loading: true, error: null });
-
+    const token = getCookie('authToken');
+    const idString = id.toString() 
     try {
-      // Simulação de chamada de API
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await fetch(`https://localhost:7198/User/DeleteUser/${idString}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      });
 
-      mockUsers = mockUsers.filter(user => user.id !== id);
+      const data = await response.json();
 
+      console.log(data);
+      
+
+      if (data.erro) {
+        throw new Error(data.mensagem || 'Failed to update user');
+      } 
       set(state => ({
-        users: state.users.filter(user => user.id !== id),
+        companies: state.users.map(user =>
+          user.userId === id ? { ...user,isActive:!user.isActive} : user
+        ),
         loading: false
       }));
+      getNotificationStore().showNotification(data.mensagem, 'success');
 
-      getNotificationStore().showNotification('User deleted successfully', 'success');
     } catch (error) {
-      let errorMessage = 'Failed to delete user';
+      let errorMessage = 'Failed to update user';
       if (error instanceof Error) {
         errorMessage = error.message;
       }

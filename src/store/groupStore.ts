@@ -141,7 +141,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     set({ loading: true, error: null });
     const token = getCookie('authToken');
     try {
-      const response = await fetch(`https://localhost:7198/Group/DeleteGroup/${id}`, {
+      const response = await fetch(`https://localhost:7198/Group/ToggleStatusGroup/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
         throw new Error('Group not found');
       }
       
-      const response = await fetch(`https://localhost:7198/Group/DeleteGroup/${id}`, {
+      const response = await fetch(`https://localhost:7198/Group/ToggleStatusGroup/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
