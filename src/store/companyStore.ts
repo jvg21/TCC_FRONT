@@ -13,7 +13,7 @@ export const useCompanyStore = create<CompanyState>((set, get) => ({
     const token = getCookie('authToken');
 
     try {
-      const response = await fetch('https://localhost:7198/Company/GetCompanies', {
+      const response = await fetch('https://localhost:7198/Company/GetListCompanies', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ export const useCompanyStore = create<CompanyState>((set, get) => ({
     set({ loading: true, error: null });
     const token = getCookie('authToken');
     try {
-      const response = await fetch(`https://localhost:7198/Company/DeleteCompany/${id}`, {
+      const response = await fetch(`https://localhost:7198/Company/ToggleStatusCompany/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
