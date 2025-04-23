@@ -24,6 +24,7 @@ export const GroupManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isViewUsersModalOpen, setIsViewUsersModalOpen] = useState(false);
   const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
   
   // Verificação se o usuário atual é funcionário (Profile 3)
   const isEmployee = currentUser?.profile === 3;
@@ -58,7 +59,13 @@ export const GroupManagement = () => {
 
   const openViewUsersModal = (group: Group) => {
     setCurrentGroup(group);
+    setModalLoading(true);
     setIsViewUsersModalOpen(true);
+    
+    // Reset loading depois de um breve delay para dar tempo ao modal de renderizar
+    setTimeout(() => {
+      setModalLoading(false);
+    }, 500);
   };
 
   const handleDelete = async () => {
@@ -73,11 +80,13 @@ export const GroupManagement = () => {
     }
   };
 
-  // Componente para mostrar usuários do grupo em um modal
+  // Componente para mostrar usuários do grupo em um modal - CORRIGIDO
   const UsersViewModal = ({ group, isOpen, onClose }: { group: Group, isOpen: boolean, onClose: () => void }) => {
     if (!isOpen || !group) return null;
     
-    const userCount = group.users?.length || 0;
+    // Verificação de segurança para garantir que group.users existe
+    const users = group.users || [];
+    const userCount = users.length;
     
     return (
       <Modal
@@ -90,7 +99,11 @@ export const GroupManagement = () => {
           {t('totalUsers')}: {userCount}
         </div>
         
-        {userCount > 0 ? (
+        {modalLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : userCount > 0 ? (
           <div className="max-h-96 overflow-y-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
@@ -107,7 +120,7 @@ export const GroupManagement = () => {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {group.users?.map(user => (
+                {users.map(user => (
                   <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {user.name}
@@ -170,7 +183,10 @@ export const GroupManagement = () => {
         accessor: (group) => (
           <div className="flex items-center">
             <button
-              onClick={() => openViewUsersModal(group)}
+              onClick={(e) => {
+                e.stopPropagation(); // Evitar propagação do evento
+                openViewUsersModal(group);
+              }}
               className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               title={t('viewUsers')}
             >

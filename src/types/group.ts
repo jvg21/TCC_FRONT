@@ -1,3 +1,6 @@
+// Atualização do src/types/group.ts
+// Garantindo que o tipo Group inclui corretamente o array de usuários
+
 import { User } from "./user";
 
 export interface Group {

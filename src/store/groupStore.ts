@@ -29,12 +29,12 @@ export const useGroupStore = create<GroupState>((set, get) => ({
 
       const groupsData = data.objeto || [];
       
-      // Para cada grupo, buscar  usuários
+      // Para cada grupo, buscar usuários
       const groupsWithUsers = await Promise.all(
         groupsData.map(async (group: Group) => {
           try {
             // Buscar usuários associados ao grupo
-            const usersResponse = await fetch(`https://localhost:7198/User/GetListUserByGroup/${group.groupId}`, {
+            const usersResponse = await fetch(`https://localhost:7198/Group/GetListUserByGroup/${group.groupId}`, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
@@ -45,11 +45,11 @@ export const useGroupStore = create<GroupState>((set, get) => ({
             const usersData = await usersResponse.json();
             
             if (!usersData.erro && usersData.objeto) {
-              // Adicionar usuários ao grupo
               return { ...group, users: usersData.objeto };
             }
             
             return { ...group, users: [] };
+
           } catch (err) {
             console.error(`Failed to fetch users for group ${group.groupId}:`, err);
             return { ...group, users: [] };
@@ -58,9 +58,6 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       );
 
       set({ groups: groupsWithUsers, loading: false });
-
-      console.log(groupsWithUsers)
-
     } catch (error) {
       let errorMessage = 'Failed to fetch groups';
       if (error instanceof Error) {
@@ -70,6 +67,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       getNotificationStore().showError(errorMessage);
     }
   },
+
   getGroup: (id: number) => {
     return get().groups.find(group => group.groupId === id);
   },
@@ -188,8 +186,6 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     }
   },
 
-  
-
   toggleGroupStatus: async (id: number) => {
     set({ loading: true, error: null });
     const token = getCookie('authToken');
@@ -260,6 +256,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
         throw new Error(data.mensagem || 'Failed to add user to group');
       }
 
+      // Buscar o usuário adicionado para atualizar o estado
       const userResponse = await fetch(`https://localhost:7198/User/GetUserById/${userId}`, {
         method: 'GET',
         headers: {
@@ -271,8 +268,10 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       const userData = await userResponse.json();
       
       if (userData.erro || !userData.objeto) {
+        // Se não conseguir obter os dados do usuário, buscar o grupo completo novamente
         await get().fetchGroups();
       } else {
+        // Atualizar o estado com o novo usuário adicionado ao grupo
         set(state => ({
           groups: state.groups.map(g => {
             if (g.groupId === groupId) {
@@ -322,6 +321,7 @@ export const useGroupStore = create<GroupState>((set, get) => ({
         throw new Error(data.mensagem || 'Failed to remove user from group');
       }
 
+      // Atualizar o estado removendo o usuário do grupo
       set(state => ({
         groups: state.groups.map(g => {
           if (g.groupId === groupId) {
