@@ -14,8 +14,8 @@ interface ApiResponse {
 interface TokenPayload {
   nameid: string; // id do usuário
   unique_name: string; // nome do usuário
-  role: string;
-  CompanyId: string;
+  role: string; // profile do usuário (1, 2 ou 3)
+  CompanyId: string; // ID da empresa
   nbf: number;
   exp: number;
   iat: number;
@@ -38,9 +38,16 @@ const getInitialAuthState = (): { user: User | null, isAuthenticated: boolean } 
       
       // Extract user information from token
       const user: User = {
-        id: tokenPayload.nameid,
+        userId: parseInt(tokenPayload.nameid),
         name: tokenPayload.unique_name,
-        email: '' // We don't have the email in the token
+        email: '', // Não temos o email no token
+        profile: parseInt(tokenPayload.role),
+        companyId: parseInt(tokenPayload.CompanyId),
+        preferredLanguage: 1, // Valores padrão
+        preferredTheme: 1,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
       
       return { user, isAuthenticated: true };
@@ -53,7 +60,6 @@ const getInitialAuthState = (): { user: User | null, isAuthenticated: boolean } 
   return { user: null, isAuthenticated: false };
 };
 
-// Create the auth store with initial state from cookies
 const initialState = getInitialAuthState();
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -88,12 +94,19 @@ export const useAuthStore = create<AuthState>((set) => ({
         
         // Extrair informações do usuário do token
         const user: User = {
-          id: tokenPayload.nameid,
+          userId: parseInt(tokenPayload.nameid),
           name: tokenPayload.unique_name,
-          email: email // O token não tem o email, então usamos o que o usuário digitou
+          email: email,
+          profile: parseInt(tokenPayload.role),
+          companyId: parseInt(tokenPayload.CompanyId),
+          preferredLanguage: 1, // Valores padrão
+          preferredTheme: 1,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
         
-        // Store token in cookies instead of localStorage
+        // Store token in cookies 
         setCookie('authToken', data.objeto.token);
         
         // Atualizar o estado
@@ -120,7 +133,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   
   logout: () => {
-    // Remove token from cookies instead of localStorage
     eraseCookie('authToken');
     
     set({ user: null, isAuthenticated: false });
@@ -151,7 +163,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       console.error('Password reset error:', error);
       
-      // Se a mensagem de erro ainda não foi exibida
       if (error instanceof Error && !error.message.includes('Falha na redefinição')) {
         getNotificationStore().showError("Ocorreu um erro inesperado durante a redefinição de senha");
       }

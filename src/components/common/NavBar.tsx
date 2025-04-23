@@ -1,7 +1,6 @@
-// src/components/NavBar.tsx (Corrigido)
 import { useState } from 'react';
-import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe, Users, Building, Grid, Menu, X } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuthStore } from '../../store/authStore';
 import { useTheme } from '../../hooks/useTheme';
@@ -13,6 +12,7 @@ export const NavBar = () => {
     const { toggleLanguage, currentLanguage } = useLanguage();
     const { isDarkMode, toggleTheme } = useTheme();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     
     const handleLogout = () => {
         logout();
@@ -23,25 +23,67 @@ export const NavBar = () => {
         setIsDropdownOpen(prevState => !prevState);
     };
 
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(prevState => !prevState);
+    };
+
     const handleItemClick = (callback: () => void) => {
         callback();
-        // Não fechar o dropdown automaticamente após clicar em um item
-        // para evitar que o usuário perca o contexto
     };
 
     const handleCloseDropdown = () => {
         setIsDropdownOpen(false);
     };
 
+    const handleNavigate = (path: string) => {
+        navigate(path);
+        setIsMobileMenuOpen(false);
+    };
+
     return (
         <nav className="bg-white dark:bg-gray-800 shadow-lg">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
-                    <div className="flex items-center cursor-pointer" onClick={()=>{navigate('/dashboard')}}>
-                        <LayoutDashboard className="h-8 w-8 text-blue-500"  />
-                        <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
-                            {t('dashboard')}
-                        </span>
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/dashboard')}>
+                            <LayoutDashboard className="h-8 w-8 text-blue-500" />
+                        </div>
+                        
+                        {/* Desktop Navigation Links */}
+                        <div className="hidden md:block ml-10">
+                            <div className="flex items-center space-x-4">
+                                <Link 
+                                    to="/dashboard" 
+                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
+                                >
+                                    {t('dashboard')}
+                                </Link>
+                                
+                                {/* Only show Companies link for admins */}
+                                {user?.profile === 1 && (
+                                    <Link 
+                                        to="/companies" 
+                                        className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
+                                    >
+                                        {t('companies')}
+                                    </Link>
+                                )}
+                                
+                                <Link 
+                                    to="/companies/groups" 
+                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
+                                >
+                                    {t('groups')}
+                                </Link>
+                                
+                                <Link 
+                                    to="/companies/user" 
+                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
+                                >
+                                    {t('users')}
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                     
                     <div className="flex items-center space-x-4">
@@ -50,6 +92,13 @@ export const NavBar = () => {
                                 {t('welcome')}, {user?.name}!
                             </span>
                         </div>
+                        
+                        <button 
+                            onClick={toggleMobileMenu}
+                            className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                        >
+                            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        </button>
                         
                         <div className="relative">
                             <button 
@@ -124,6 +173,47 @@ export const NavBar = () => {
                     </div>
                 </div>
             </div>
+            
+            {isMobileMenuOpen && (
+                <div className="md:hidden bg-white dark:bg-gray-800 shadow-lg">
+                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                        <button 
+                            onClick={() => handleNavigate('/dashboard')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <LayoutDashboard className="h-5 w-5 inline-block mr-2" />
+                            {t('dashboard')}
+                        </button>
+                        
+                        {/* Only show Companies link for admins */}
+                        {user?.profile === 1 && (
+                            <button 
+                                onClick={() => handleNavigate('/companies')}
+                                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                            >
+                                <Building className="h-5 w-5 inline-block mr-2" />
+                                {t('companies')}
+                            </button>
+                        )}
+                        
+                        <button 
+                            onClick={() => handleNavigate('/companies/groups')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <Grid className="h-5 w-5 inline-block mr-2" />
+                            {t('groups')}
+                        </button>
+                        
+                        <button 
+                            onClick={() => handleNavigate('/companies/user')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <Users className="h-5 w-5 inline-block mr-2" />
+                            {t('users')}
+                        </button>
+                    </div>
+                </div>
+            )}
         </nav>
     );
 };

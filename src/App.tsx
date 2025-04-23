@@ -1,8 +1,6 @@
-// src/App.tsx (Atualizado com inicialização do tema)
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-import { ForgotPassword } from './components/pages/ForgotPassword';
 import { Dashboard } from './components/pages/Dashboard';
 import { useAuthStore } from './store/authStore';
 import './i18n';
@@ -12,6 +10,8 @@ import {  UserManagement } from './components/pages/User';
 import { AuthProvider } from './context/AuthProvider';
 import { CompaniesManagement } from './components/pages/Companies';
 import { Notification } from './components/utils/Notification';
+import { NotFound } from './components/pages/NotFound';
+import { ForgotPassword } from './components/pages/ForgotPassword';
 
 // Inicialização do tema no carregamento da aplicação
 const initTheme = () => {
@@ -36,12 +36,14 @@ function App() {
     initTheme();
   }, []);
 
+  const { user } = useAuthStore();
+
   return (
     <AuthProvider>
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ForgotPassword />} />
           <Route
             path="/dashboard"
             element={
@@ -70,11 +72,18 @@ function App() {
             path='/companies'
             element={
               <PrivateRoute>
-                <CompaniesManagement />
+                {user?.profile === 1 ? (
+                  <CompaniesManagement />
+                ) : (
+                  <Navigate to="/dashboard" />
+                )}
               </PrivateRoute>
             }
           />
           <Route path="/" element={<Navigate to="/login" />} />
+          
+          {/* Rota para 404 - NotFound */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
       <Notification />

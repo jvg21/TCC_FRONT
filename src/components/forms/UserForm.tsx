@@ -1,15 +1,14 @@
-// src/components/forms/UserForm.tsx
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../types/user';
 import { Modal } from './Modal';
-import { FormInput } from './FormField';
+import { FormInput, FormSelect } from './FormField';
 
 interface UserFormProps {
   user?: User;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (userData: Omit<User, 'id'>) => Promise<void>;
+  onSubmit: (userData: Omit<User, 'userId' | 'isActive' | 'createdAt' | 'updatedAt'>) => Promise<void>;
 }
 
 export const UserForm: React.FC<UserFormProps> = ({ 
@@ -21,15 +20,20 @@ export const UserForm: React.FC<UserFormProps> = ({
   const { t } = useTranslation();
   const isEditing = !!user;
 
-  // Departamentos disponíveis
-  const departments = ['IT', 'HR', 'Finance', 'Marketing', 'Sales'];
+  // Perfis disponíveis
+  const profiles = [
+    { value: '2', label: t('manager') || 'Manager' },
+    { value: '3', label: t('employee') || 'Employee' }
+  ];
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    department: '',
-    position: '',
-    hireDate: ''
+    password: '',
+    profile: '3', // Default to employee
+    preferredLanguage: '1',
+    preferredTheme: '1',
+    companyId: 0
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -39,9 +43,11 @@ export const UserForm: React.FC<UserFormProps> = ({
       setFormData({
         name: user.name || '',
         email: user.email || '',
-        department: user.department || '',
-        position: user.position || '',
-        hireDate: user.hireDate || ''
+        password: user.password || '',
+        profile: user.profile.toString() || '3',
+        preferredLanguage: user.preferredLanguage.toString() || '1',
+        preferredTheme: user.preferredTheme.toString() || '1',
+        companyId: user.companyId
       });
     }
   }, [user]);
@@ -74,16 +80,8 @@ export const UserForm: React.FC<UserFormProps> = ({
       newErrors.email = t('invalidEmail');
     }
     
-    if (!formData.department.trim()) {
-      newErrors.department = t('departmentRequired');
-    }
-    
-    if (!formData.position.trim()) {
-      newErrors.position = t('positionRequired');
-    }
-    
-    if (!formData.hireDate.trim()) {
-      newErrors.hireDate = t('hireDateRequired');
+    if (!isEditing && !formData.password.trim()) {
+      newErrors.password = t('passwordRequired');
     }
     
     setErrors(newErrors);
@@ -98,7 +96,16 @@ export const UserForm: React.FC<UserFormProps> = ({
     }
     
     try {
-      await onSubmit(formData);
+      // Converter campos para números apropriados
+      const userData = {
+        ...formData,
+        profile: parseInt(formData.profile, 10),
+        preferredLanguage: parseInt(formData.preferredLanguage, 10),
+        preferredTheme: parseInt(formData.preferredTheme, 10),
+        companyId: formData.companyId
+      };
+      
+      await onSubmit(userData);
       onClose();
     } catch (error) {
       console.error('Form submission failed:', error);
@@ -134,38 +141,58 @@ export const UserForm: React.FC<UserFormProps> = ({
             required
           />
           
+          {!isEditing && (
+            <FormInput
+              id="password"
+              name="password"
+              label={t('password')}
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              error={errors.password}
+              required
+            />
+          )}
+          
           <FormSelect
-            id="department"
-            name="department"
-            label={t('department')}
-            value={formData.department}
+            id="profile"
+            name="profile"
+            label={t('profile')}
+            value={formData.profile}
             onChange={handleChange}
-            options={departments.map(dept => ({ value: dept, label: dept }))}
-            placeholder={t('selectDepartment')}
-            error={errors.department}
+            options={profiles}
+            error={errors.profile}
             required
           />
           
-          <FormInput
-            id="position"
-            name="position"
-            label={t('position')}
-            value={formData.position}
-            onChange={handleChange}
-            error={errors.position}
-            required
-          />
-          
-          <FormInput
-            id="hireDate"
-            name="hireDate"
-            label={t('hireDate')}
-            type="date"
-            value={formData.hireDate}
-            onChange={handleChange}
-            error={errors.hireDate}
-            required
-          />
+          {/* Preferências de idioma e tema */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormSelect
+              id="preferredLanguage"
+              name="preferredLanguage"
+              label={t('preferredLanguage')}
+              value={formData.preferredLanguage}
+              onChange={handleChange}
+              options={[
+                { value: '1', label: t('english') || 'English' },
+                { value: '2', label: t('portuguese') || 'Portuguese' }
+              ]}
+              error={errors.preferredLanguage}
+            />
+            
+            <FormSelect
+              id="preferredTheme"
+              name="preferredTheme"
+              label={t('preferredTheme')}
+              value={formData.preferredTheme}
+              onChange={handleChange}
+              options={[
+                { value: '1', label: t('light') || 'Light' },
+                { value: '2', label: t('dark') || 'Dark' }
+              ]}
+              error={errors.preferredTheme}
+            />
+          </div>
         </div>
         
         <div className="mt-6 flex justify-end space-x-3">
