@@ -67,7 +67,7 @@ export const Login = () => {
           </div>
 
           <div className="flex items-center justify-between">
-            <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400">
+            <Link to="/reset-password" className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400">
               {t('forgotPassword')}
             </Link>
           </div>

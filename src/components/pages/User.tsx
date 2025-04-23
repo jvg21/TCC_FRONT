@@ -1,24 +1,29 @@
-// src/components/pages/User.tsx (Refatorado)
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users } from 'lucide-react';
 import { User } from '../../types/user';
 import { useUserStore } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import { PageLayout } from '../common/PageLayout';
 import { SectionHeader } from '../common/SectionHeader';
 import { SearchBar } from '../common/SearchBar';
 import { DataTable, Column } from '../common/DataTable';
 import { ActionButtons } from '../common/ActionButtons';
+import { StatusBadge } from '../common/StatusBadge';
 import { UserForm } from '../forms/UserForm';
 import { ConfirmationModal } from '../forms/ConfirmationModal';
 
 export const UserManagement = () => {
   const { t } = useTranslation();
   const { users, loading, error, fetchUsers, addUser, updateUser, toggleUser } = useUserStore();
+  const { user: currentUser } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToToggle, setUserToToggle] = useState<User | null>(null);
+
+  // Verificação se o usuário atual é funcionário (Profile 3)
+  const isEmployee = currentUser?.profile === 3;
 
   useEffect(() => {
     fetchUsers();
@@ -27,90 +32,127 @@ export const UserManagement = () => {
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (user.position && user.position.toLowerCase().includes(searchTerm.toLowerCase()))
+    (user.profile.toString().includes(searchTerm))
   );
 
-  const handleAddUser = async (userData: Omit<User, 'id'>) => {
-    await addUser(userData);
+  const handleAddUser = async (userData: Omit<User, 'userId' | 'isActive' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      await addUser(userData);
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.error('Failed to add user:', error);
+    }
   };
 
-  const handleUpdateUser = async (userData: Omit<User, 'id'>) => {
+  const handleUpdateUser = async (userData: Omit<User, 'userId' | 'isActive' | 'createdAt' | 'updatedAt'>) => {
     if (editingUser) {
-      await updateUser(editingUser.id, userData);
+      try {
+        await updateUser(editingUser.userId, userData);
+        setEditingUser(null);
+      } catch (error) {
+        console.error('Failed to update user:', error);
+      }
     }
   };
 
-  const handleDeleteUser = async () => {
-    if (userToDelete) {
-      await deleteUser(userToDelete.id);
-      setUserToDelete(null);
+  const handleToggleUser = async (user: User) => {
+    try {
+      await toggleUser(user.userId);
+      setUserToToggle(null);
+    } catch (error) {
+      console.error('Failed to toggle user status:', error);
     }
   };
 
-  // Definição das colunas da tabela
-  const columns: Column<User>[] = [
-    {
-      header: t('name'),
-      accessor: (user) => (
-        <div className="text-sm font-medium text-gray-900 dark:text-white">
-          {user.name}
-        </div>
-      )
-    },
-    {
-      header: t('email'),
-      accessor: (user) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {user.email}
-        </div>
-      )
-    },
-    {
-      header: t('department'),
-      accessor: (user) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {user.department || '-'}
-        </div>
-      )
-    },
-    {
-      header: t('position'),
-      accessor: (user) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {user.position || '-'}
-        </div>
-      )
-    },
-    {
-      header: t('hireDate'),
-      accessor: (user) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {user.hireDate ? new Date(user.hireDate).toLocaleDateString() : '-'}
-        </div>
-      )
-    },
-    {
-      header: t('actions'),
-      accessor: (user) => (
-        <ActionButtons
-          onEdit={() => setEditingUser(user)}
-          onDelete={() => setUserToDelete(user)}
-          showToggle={false}
-          editTooltip={t('editEmployee')}
-          deleteTooltip={t('deleteEmployee')}
-        />
-      ),
-      className: 'text-right'
+  const getProfileName = (profileId: number): string => {
+    switch (profileId) {
+      case 1:
+        return t('administrator');
+      case 2:
+        return t('manager');
+      case 3:
+        return t('employee');
+      default:
+        return t('unknown');
     }
-  ];
+  };
+
+  // Definição das colunas da tabela - Remove a coluna de ações para funcionários
+  const getColumns = (): Column<User>[] => {
+    const baseColumns: Column<User>[] = [
+      {
+        header: t('name'),
+        accessor: (user) => (
+          <div className="text-sm font-medium text-gray-900 dark:text-white">
+            {user.name}
+          </div>
+        )
+      },
+      {
+        header: t('email'),
+        accessor: (user) => (
+          <div className="text-sm text-gray-500 dark:text-gray-300">
+            {user.email}
+          </div>
+        )
+      },
+      {
+        header: t('profile'),
+        accessor: (user) => (
+          <div className="text-sm text-gray-500 dark:text-gray-300">
+            {getProfileName(user.profile)}
+          </div>
+        )
+      },
+      {
+        header: t('status'),
+        accessor: (user) => (
+          <StatusBadge
+            label={user.isActive ? t('active') : t('inactive')}
+            variant={user.isActive ? 'success' : 'danger'}
+          />
+        )
+      },
+      {
+        header: t('lastLoginAt'),
+        accessor: (user) => (
+          <div className="text-sm text-gray-500 dark:text-gray-300">
+            {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : '-'}
+          </div>
+        )
+      }
+    ];
+
+    if (!isEmployee) {
+      baseColumns.push({
+        header: t('actions'),
+        accessor: (user) => {
+          const canEdit = currentUser!.profile <= user.profile;
+          
+          return (
+            <ActionButtons
+              onEdit={canEdit ? () => setEditingUser(user) : undefined}
+              onToggle={canEdit ? () => setUserToToggle(user) : undefined}
+              isActive={user.isActive}
+              showToggle={canEdit}
+              showDelete={false}
+              editTooltip={t('editEmployee')}
+            />
+          );
+        },
+        className: 'text-right'
+      });
+    }
+    
+    return baseColumns;
+  };
 
   return (
     <PageLayout>
       <SectionHeader
         title={t('employeeManagement')}
         icon={<Users className="h-8 w-8 text-blue-500" />}
-        showAddButton={true}
+        showAddButton={!isEmployee} // Oculta botão de adicionar para funcionários
         addButtonLabel={t('addEmployee')}
         onAddClick={() => setIsAddModalOpen(true)}
       />
@@ -124,9 +166,9 @@ export const UserManagement = () => {
       </div>
 
       <DataTable
-        columns={columns}
+        columns={getColumns()}
         data={filteredUsers}
-        keyExtractor={(user) => user.id}
+        keyExtractor={(user) => user.userId.toString()}
         isLoading={loading}
         error={error}
         emptyMessage={t('noEmployeesYet') || 'No employees added yet'}
@@ -134,8 +176,8 @@ export const UserManagement = () => {
         searchTerm={searchTerm}
       />
 
-      {/* Add Employee Modal */}
-      {isAddModalOpen && (
+      {/* Add Employee Modal - somente renderizado se não for funcionário */}
+      {!isEmployee && isAddModalOpen && (
         <UserForm
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
@@ -143,8 +185,8 @@ export const UserManagement = () => {
         />
       )}
 
-      {/* Edit Employee Modal */}
-      {editingUser && (
+      {/* Edit Employee Modal - somente renderizado se não for funcionário */}
+      {!isEmployee && editingUser && (
         <UserForm
           user={editingUser}
           isOpen={true}
@@ -153,17 +195,19 @@ export const UserManagement = () => {
         />
       )}
 
-      {/* Delete Confirmation Modal */}
-      {userToDelete && (
+      {/* Toggle Status Confirmation Modal - somente renderizado se não for funcionário */}
+      {!isEmployee && userToToggle && (
         <ConfirmationModal
           isOpen={true}
-          onClose={() => setUserToDelete(null)}
-          onConfirm={handleDeleteUser}
-          title={t('deleteEmployee')}
-          message={t('confirmDelete')}
-          confirmLabel={t('delete')}
+          onClose={() => setUserToToggle(null)}
+          onConfirm={() => handleToggleUser(userToToggle)}
+          title={userToToggle.isActive ? t('deactivateEmployee') : t('activateEmployee')}
+          message={userToToggle.isActive 
+            ? t('deactivateEmployeeConfirmation', { name: userToToggle.name }) 
+            : t('activateEmployeeConfirmation', { name: userToToggle.name })}
+          confirmLabel={userToToggle.isActive ? t('deactivate') : t('activate')}
           cancelLabel={t('cancel')}
-          variant="danger"
+          variant={userToToggle.isActive ? 'danger' : 'success'}
         />
       )}
     </PageLayout>
