@@ -26,7 +26,7 @@ Para adicionar "novocampo" à funcionalidade de Empresas, você precisará:
 
 2. **Adicionar o campo ao formulário**:
    ```typescript
-   // src/components/forms/CompanyForm.tsx
+   // src/config/company/CompanyForm.tsx
    // Adicionar ao estado do formulário
    const [formData, setFormData] = useState({
      name: '',
@@ -104,7 +104,7 @@ Para adicionar "novocampo" à funcionalidade de Usuários, siga estes passos:
 
 2. **Adicionar o campo ao formulário**:
    ```typescript
-   // src/components/forms/UserForm.tsx
+   // src/config/user/UserForm.tsx
    // Atualizar o estado inicial
    const [formData, setFormData] = useState({
      name: '',
@@ -183,7 +183,7 @@ Para adicionar "novocampo" à funcionalidade de Grupos, faça o seguinte:
 
 2. **Adicionar o campo ao formulário**:
    ```typescript
-   // src/components/forms/GroupForms.tsx
+   // src/config/company/GroupForms.tsx
    // Atualizar o estado do formulário
    const [formData, setFormData] = useState({
      name: '',
