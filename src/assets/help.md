@@ -37,6 +37,20 @@ Para adicionar "novocampo" à funcionalidade de Empresas, você precisará:
      zipCode: '',
      novocampo: '' // Novo campo adicionado
    });
+
+   useEffect(() => {
+    if (company) {
+      setFormData({
+        name: company.name,
+        taxId: company.taxId,
+        email: company.email,
+        phone: company.phone,
+        adress: company.adress,
+        zipCode: company.zipCode,
+        novocampo: company.novocampo
+      });
+    }
+  }, [company]);
    
    // Adicionar o campo ao formulário (dentro do JSX)
    <FormInput
@@ -102,6 +116,23 @@ Para adicionar "novocampo" à funcionalidade de Usuários, siga estes passos:
      novocampo: '', // Novo campo adicionado
      companyId: 0
    });
+
+   
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        password: user.password || '',
+        profile: user.profile.toString() || '3',
+        preferredLanguage: user.preferredLanguage.toString() || '1',
+        preferredTheme: user.preferredTheme.toString() || '1',
+        companyId: user.companyId,
+        novocampo:user.novocampo
+
+      });
+    }
+  }, [user]);
    
    // Adicionar ao formulário (dentro do JSX)
    <FormInput
@@ -159,6 +190,16 @@ Para adicionar "novocampo" à funcionalidade de Grupos, faça o seguinte:
      description: '',
      novocampo: '' // Novo campo adicionado
    });
+   // ALTERAR USE EEFECT
+    useEffect(() => {
+        if (group) {
+            setFormData({
+                name: group.name,
+                description: group.description
+                novocampo: group.novocampo
+            });
+        }
+    }, [group]);
    
    // Adicionar ao formulário (dentro do JSX)
    <FormInput
