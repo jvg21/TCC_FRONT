@@ -6,9 +6,9 @@ import { useLanguage } from '../../hooks/useLanguage';
 import { useGroupStore } from '../../store/groupStore';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
-import { Modal } from './Modal';
-import { FormInput } from './FormField';
-import { StatusBadge } from '../common/StatusBadge';
+import { Modal } from '../../components/forms/Modal';
+import { FormInput } from '../../components/forms/FormField';
+import { StatusBadge } from '../../components/common/StatusBadge';
 
 interface GroupFormProps {
     group?: Group;
