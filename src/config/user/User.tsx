@@ -4,14 +4,14 @@ import { Users } from 'lucide-react';
 import { User } from '../../types/user';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
-import { PageLayout } from '../common/PageLayout';
-import { SectionHeader } from '../common/SectionHeader';
-import { SearchBar } from '../common/SearchBar';
-import { DataTable, Column } from '../common/DataTable';
-import { ActionButtons } from '../common/ActionButtons';
-import { StatusBadge } from '../common/StatusBadge';
-import { UserForm } from '../forms/UserForm';
-import { ConfirmationModal } from '../forms/ConfirmationModal';
+import { Column, DataTable } from '../../components/common/DataTable';
+import { StatusBadge } from '../../components/common/StatusBadge';
+import { ActionButtons } from '../../components/common/ActionButtons';
+import { PageLayout } from '../../components/common/PageLayout';
+import { SectionHeader } from '../../components/common/SectionHeader';
+import { SearchBar } from '../../components/common/SearchBar';
+import { UserForm } from './UserForm';
+import { ConfirmationModal } from '../../components/forms/ConfirmationModal';
 
 export const UserManagement = () => {
   const { t } = useTranslation();

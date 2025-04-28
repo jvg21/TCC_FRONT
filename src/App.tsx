@@ -5,13 +5,13 @@ import { Dashboard } from './components/pages/Dashboard';
 import { useAuthStore } from './store/authStore';
 import './i18n';
 import { Login } from './components/pages/Login';
-import { GroupManagement } from './components/pages/Group';
-import {  UserManagement } from './components/pages/User';
 import { AuthProvider } from './context/AuthProvider';
-import { CompaniesManagement } from './components/pages/Companies';
 import { Notification } from './components/utils/Notification';
 import { NotFound } from './components/pages/NotFound';
 import { ForgotPassword } from './components/pages/ForgotPassword';
+import { UserManagement } from './config/user/User';
+import { GroupManagement } from './config/group/Group';
+import { CompaniesManagement } from './config/company/Companies';
 
 // Inicialização do tema no carregamento da aplicação
 const initTheme = () => {
@@ -56,7 +56,7 @@ function App() {
             path='/companies/user'
             element={
               <PrivateRoute>
-                <UserManagement />
+                <UserManagement/>
               </PrivateRoute>
             }
           />

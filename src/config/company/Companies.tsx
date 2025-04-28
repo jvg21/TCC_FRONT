@@ -1,17 +1,16 @@
-// src/components/pages/Companies.tsx (Refactored)
+// src/components/pages/Companies.tsx (Updated)
 import { useState, useEffect } from 'react';
 import { Building } from 'lucide-react';
 import { Company } from '../../types/company';
 import { useCompanyStore } from '../../store/companyStore';
 import { useLanguage } from '../../hooks/useLanguage';
-import { CompanyForm } from '../forms/CompanyForm';
-import { PageLayout } from '../common/PageLayout';
-import { SectionHeader } from '../common/SectionHeader';
-import { SearchBar } from '../common/SearchBar';
-import { DataTable, Column } from '../common/DataTable';
-import { ActionButtons } from '../common/ActionButtons';
-import { StatusBadge } from '../common/StatusBadge';
-import { ConfirmationModal } from '../forms/ConfirmationModal';
+import { getCompanyColumns } from './CompanyColumns';
+import { SectionHeader } from '../../components/common/SectionHeader';
+import { PageLayout } from '../../components/common/PageLayout';
+import { SearchBar } from '../../components/common/SearchBar';
+import { DataTable } from '../../components/common/DataTable';
+import { CompanyForm } from './CompanyForm';
+import { ConfirmationModal } from '../../components/forms/ConfirmationModal';
 
 export const CompaniesManagement = () => {
   const { t } = useLanguage();
@@ -41,72 +40,11 @@ export const CompaniesManagement = () => {
     }
   };
 
-  // Table columns definition
-  const columns: Column<Company>[] = [
-    {
-      header: t('name'),
-      accessor: (company) => (
-        <div className="text-sm font-medium text-gray-900 dark:text-white">
-          {company.name}
-        </div>
-      )
-    },
-    {
-      header: t('taxId'),
-      accessor: (company) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {company.taxId}
-        </div>
-      )
-    },
-    {
-      header: t('contact'),
-      accessor: (company) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {company.phone}
-        </div>
-      )
-    },
-    {
-      header: t('email'),
-      accessor: (company) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {company.email}
-        </div>
-      )
-    },
-    {
-      header: t('zipCode'),
-      accessor: (company) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {company.zipCode}
-        </div>
-      )
-    },
-    {
-      header: t('status'),
-      accessor: (company) => (
-        <StatusBadge
-          label={company.isActive ? t('active') : t('inactive')}
-          variant={company.isActive ? 'success' : 'danger'}
-        />
-      )
-    },
-    {
-      header: t('actions'),
-      accessor: (company) => (
-        <ActionButtons
-          onEdit={() => setEditingCompany(company)}
-          onToggle={() => setToggleCompany(company)}
-          isActive={company.isActive}
-          showToggle={true}
-          showDelete={false}
-          editTooltip={t('editCompany')}
-        />
-      ),
-      className: 'text-right'
-    }
-  ];
+  // Get columns configuration
+  const columns = getCompanyColumns({
+    onEdit: setEditingCompany,
+    onToggle: setToggleCompany
+  });
 
   return (
     <PageLayout>

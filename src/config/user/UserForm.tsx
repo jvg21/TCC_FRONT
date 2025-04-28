@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../types/user';
-import { Modal } from './Modal';
-import { FormInput, FormSelect } from './FormField';
+import { FormInput, FormSelect } from '../../components/forms/FormField';
+import { Modal } from '../../components/forms/Modal';
 
 interface UserFormProps {
   user?: User;

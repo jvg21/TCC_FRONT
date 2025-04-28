@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { useCompanyStore } from '../../store/companyStore';
 import { Company } from '../../types/company';
 import { useLanguage } from '../../hooks/useLanguage';
-import { Modal } from './Modal';
-import { FormInput } from './FormField';
+import { FormInput } from '../../components/forms/FormField';
+import { Modal } from '../../components/forms/Modal';
 
 interface CompanyFormProps {
   company?: Company;
@@ -67,9 +67,10 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
     
     if (!formData.taxId.trim()) {
       newErrors.taxId = t('taxIdRequired');
-    } else if (!/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(formData.taxId)) {
-      newErrors.taxId = t('invalidTaxId');
-    }
+    } 
+    // else if (!/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(formData.taxId)) {
+    //   newErrors.taxId = t('invalidTaxId');
+    // }
     
     if (!formData.email.trim()) {
       newErrors.email = t('emailRequired');
@@ -87,9 +88,10 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
     
     if (!formData.zipCode.trim()) {
       newErrors.zipCode = t('zipCodeRequired');
-    } else if (!/^\d{5}-\d{3}$/.test(formData.zipCode)) {
-      newErrors.zipCode = t('invalidZipCode');
-    }
+    } 
+    // else if (!/^\d{5}-\d{3}$/.test(formData.zipCode)) {
+    //   newErrors.zipCode = t('invalidZipCode');
+    // }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -136,7 +138,7 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
   if (!isOpen) return null;
 
   return (
-    <Modal 
+    <Modal
       isOpen={isOpen} 
       onClose={onClose} 
       title={isEditing ? t('editCompany') : t('addCompany')}
@@ -185,8 +187,8 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
             onChange={handleChange}
             error={errors.phone}
             required
-            placeholder="(00) 00000-0000"
-            helpText={`${t('formatInfo')}: (00) 00000-0000`}
+            placeholder="00 00 00000-0000"
+            helpText={`${t('formatInfo')}: 00 00 00000-0000`}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

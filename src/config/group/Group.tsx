@@ -1,18 +1,19 @@
+// src/components/pages/Group.tsx (Updated)
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Grid, Eye } from 'lucide-react';
+import { Grid } from 'lucide-react';
 import { useGroupStore } from '../../store/groupStore';
 import { Group } from '../../types/group';
 import { useAuthStore } from '../../store/authStore';
-import { PageLayout } from '../common/PageLayout';
-import { SectionHeader } from '../common/SectionHeader';
-import { SearchBar } from '../common/SearchBar';
-import { DataTable, Column } from '../common/DataTable';
-import { ActionButtons } from '../common/ActionButtons';
-import { StatusBadge } from '../common/StatusBadge';
-import { ConfirmationModal } from '../forms/ConfirmationModal';
-import { Modal } from '../forms/Modal';
-import { GroupForm } from '../forms/GroupForms';
+import { StatusBadge } from '../../components/common/StatusBadge';
+import { SectionHeader } from '../../components/common/SectionHeader';
+import { PageLayout } from '../../components/common/PageLayout';
+import { getGroupColumns } from './GroupColumns';
+import { Modal } from '../../components/forms/Modal';
+import { DataTable } from '../../components/common/DataTable';
+import { SearchBar } from '../../components/common/SearchBar';
+import { GroupForm } from './GroupForms';
+import { ConfirmationModal } from '../../components/forms/ConfirmationModal';
 
 export const GroupManagement = () => {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ export const GroupManagement = () => {
   const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   
-  // Verificação se o usuário atual é funcionário (Profile 3)
+  // Check if current user is an employee (Profile 3)
   const isEmployee = currentUser?.profile === 3;
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export const GroupManagement = () => {
     setModalLoading(true);
     setIsViewUsersModalOpen(true);
     
-    // Reset loading depois de um breve delay para dar tempo ao modal de renderizar
+    // Reset loading after a short delay to give modal time to render
     setTimeout(() => {
       setModalLoading(false);
     }, 500);
@@ -80,11 +81,11 @@ export const GroupManagement = () => {
     }
   };
 
-  // Componente para mostrar usuários do grupo em um modal - CORRIGIDO
+  // Component to show group users in a modal
   const UsersViewModal = ({ group, isOpen, onClose }: { group: Group, isOpen: boolean, onClose: () => void }) => {
     if (!isOpen || !group) return null;
     
-    // Verificação de segurança para garantir que group.users existe
+    // Safety check to ensure group.users exists
     const users = group.users || [];
     const userCount = users.length;
     
@@ -159,84 +160,20 @@ export const GroupManagement = () => {
     );
   };
 
-  // Definição das colunas da tabela - Remove a coluna de ações para funcionários
-  const getColumns = (): Column<Group>[] => {
-    const baseColumns: Column<Group>[] = [
-      {
-        header: t('name'),
-        accessor: (group) => (
-          <div className="text-sm font-medium text-gray-900 dark:text-white">
-            {group.name}
-          </div>
-        )
-      },
-      {
-        header: t('description'),
-        accessor: (group) => (
-          <div className="text-sm text-gray-500 dark:text-gray-300">
-            {group.description}
-          </div>
-        )
-      },
-      {
-        header: t('users'),
-        accessor: (group) => (
-          <div className="flex items-center">
-            <button
-              onClick={(e) => {
-                e.stopPropagation(); // Evitar propagação do evento
-                openViewUsersModal(group);
-              }}
-              className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-              title={t('viewUsers')}
-            >
-              <Users className="h-5 w-5 mr-1" />
-              <span className="text-sm text-gray-500 dark:text-gray-300">
-                {group.users?.length || 0}
-              </span>
-              <Eye className="ml-1 h-4 w-4" />
-            </button>
-          </div>
-        )
-      },
-      {
-        header: t('status'),
-        accessor: (group) => (
-          <StatusBadge
-            label={group.isActive ? t('active') : t('inactive')}
-            variant={group.isActive ? 'success' : 'danger'}
-          />
-        )
-      }
-    ];
-
-    // Apenas adiciona a coluna de ações se não for um funcionário
-    if (!isEmployee) {
-      baseColumns.push({
-        header: t('actions'),
-        accessor: (group) => (
-          <ActionButtons
-            onEdit={() => openEditModal(group)}
-            onToggle={() => handleToggleStatus(group)}
-            isActive={group.isActive}
-            showToggle={true}
-            showDelete={false}
-            editTooltip={t('editGroup')}
-          />
-        ),
-        className: 'text-right'
-      });
-    }
-    
-    return baseColumns;
-  };
+  // Get columns configuration
+  const columns = getGroupColumns({
+    onEdit: isEmployee ? undefined : openEditModal,
+    onViewUsers: openViewUsersModal,
+    onToggle: isEmployee ? undefined : handleToggleStatus,
+    isEmployee
+  });
 
   return (
     <PageLayout>
       <SectionHeader
         title={t('groups')}
         icon={<Grid className="h-8 w-8 text-blue-500" />}
-        showAddButton={!isEmployee} // Oculta botão de adicionar para funcionários
+        showAddButton={!isEmployee} // Hide add button for employees
         addButtonLabel={t('addGroup')}
         onAddClick={openAddModal}
       />
@@ -250,7 +187,7 @@ export const GroupManagement = () => {
       </div>
 
       <DataTable
-        columns={getColumns()}
+        columns={columns}
         data={filteredGroups}
         keyExtractor={(group) => group.groupId.toString()}
         isLoading={loading}
