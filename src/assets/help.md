@@ -1,10 +1,10 @@
 # Implementação do Novo Campo "novocampo" em Diferentes Funcionalidades
 
-Vou detalhar o processo de adicionar um novo campo chamado "novocampo" para cada uma das três funcionalidades principais do sistema: Empresa, Usuário e Grupo.
+Este guia detalha o processo completo para adicionar um novo campo chamado "novocampo" para cada uma das três funcionalidades principais do sistema: Empresa, Usuário e Grupo.
 
 ## 1. Implementação em Empresas
 
-Para adicionar "novocampo" à funcionalidade de Empresas, você precisará:
+Para adicionar "novocampo" à funcionalidade de Empresas, você precisará modificar os seguintes arquivos:
 
 1. **Atualizar o tipo Company**:
    ```typescript
@@ -38,19 +38,20 @@ Para adicionar "novocampo" à funcionalidade de Empresas, você precisará:
      novocampo: '' // Novo campo adicionado
    });
 
+   // Adicionar ao useEffect para edição
    useEffect(() => {
-    if (company) {
-      setFormData({
-        name: company.name,
-        taxId: company.taxId,
-        email: company.email,
-        phone: company.phone,
-        adress: company.adress,
-        zipCode: company.zipCode,
-        novocampo: company.novocampo
-      });
-    }
-  }, [company]);
+     if (company) {
+       setFormData({
+         name: company.name,
+         taxId: company.taxId,
+         email: company.email,
+         phone: company.phone,
+         adress: company.adress,
+         zipCode: company.zipCode,
+         novocampo: company.novocampo || '' // Incluir valor existente ou vazio
+       });
+     }
+   }, [company]);
    
    // Adicionar o campo ao formulário (dentro do JSX)
    <FormInput
@@ -66,7 +67,7 @@ Para adicionar "novocampo" à funcionalidade de Empresas, você precisará:
 
 3. **Atualizar as colunas da tabela**:
    ```typescript
-   // src/config/company/columns.tsx
+   // src/config/company/CompanyColumns.tsx
    // Adicionar a coluna na configuração
    {
      header: t('novocampo'),
@@ -76,6 +77,27 @@ Para adicionar "novocampo" à funcionalidade de Empresas, você precisará:
        </div>
      )
    },
+   ```
+
+4. **Adicionar validação para o campo (opcional)**:
+   ```typescript
+   // src/config/company/CompanyForm.tsx
+   // No método validate()
+   if (!formData.novocampo.trim()) {
+     newErrors.novocampo = t('novocampoRequired');
+   }
+   ```
+
+5. **Atualizar arquivo de idiomas (opcional)**:
+   ```typescript
+   // src/i18n/index.ts
+   // Adicionar nas traduções em inglês
+   novocampo: 'New Field',
+   novocampoRequired: 'New Field is required',
+   
+   // Adicionar nas traduções em português
+   novocampo: 'Novo Campo',
+   novocampoRequired: 'Novo Campo é obrigatório',
    ```
 
 ## 2. Implementação em Usuários
@@ -117,22 +139,21 @@ Para adicionar "novocampo" à funcionalidade de Usuários, siga estes passos:
      companyId: 0
    });
 
-   
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        password: user.password || '',
-        profile: user.profile.toString() || '3',
-        preferredLanguage: user.preferredLanguage.toString() || '1',
-        preferredTheme: user.preferredTheme.toString() || '1',
-        companyId: user.companyId,
-        novocampo:user.novocampo
-
-      });
-    }
-  }, [user]);
+   // Atualizar o useEffect para edição
+   useEffect(() => {
+     if (user) {
+       setFormData({
+         name: user.name || '',
+         email: user.email || '',
+         password: user.password || '',
+         profile: user.profile.toString() || '3',
+         preferredLanguage: user.preferredLanguage.toString() || '1',
+         preferredTheme: user.preferredTheme.toString() || '1',
+         novocampo: user.novocampo || '',
+         companyId: user.companyId
+       });
+     }
+   }, [user]);
    
    // Adicionar ao formulário (dentro do JSX)
    <FormInput
@@ -148,7 +169,7 @@ Para adicionar "novocampo" à funcionalidade de Usuários, siga estes passos:
 
 3. **Atualizar as colunas da tabela**:
    ```typescript
-   // src/config/user/columns.tsx
+   // src/config/user/UserColumns.tsx
    // Adicionar a nova coluna
    {
      header: t('novocampo'),
@@ -158,6 +179,15 @@ Para adicionar "novocampo" à funcionalidade de Usuários, siga estes passos:
        </div>
      )
    },
+   ```
+
+4. **Adicionar validação para o campo (opcional)**:
+   ```typescript
+   // src/config/user/UserForm.tsx
+   // No método validate()
+   if (!formData.novocampo.trim()) {
+     newErrors.novocampo = t('novocampoRequired');
+   }
    ```
 
 ## 3. Implementação em Grupos
@@ -183,23 +213,24 @@ Para adicionar "novocampo" à funcionalidade de Grupos, faça o seguinte:
 
 2. **Adicionar o campo ao formulário**:
    ```typescript
-   // src/config/company/GroupForms.tsx
+   // src/config/group/GroupForms.tsx
    // Atualizar o estado do formulário
    const [formData, setFormData] = useState({
      name: '',
      description: '',
      novocampo: '' // Novo campo adicionado
    });
-   // ALTERAR USE EEFECT
-    useEffect(() => {
-        if (group) {
-            setFormData({
-                name: group.name,
-                description: group.description
-                novocampo: group.novocampo
-            });
-        }
-    }, [group]);
+   
+   // Atualizar o useEffect para edição
+   useEffect(() => {
+     if (group) {
+       setFormData({
+         name: group.name,
+         description: group.description,
+         novocampo: group.novocampo || ''
+       });
+     }
+   }, [group]);
    
    // Adicionar ao formulário (dentro do JSX)
    <FormInput
@@ -215,7 +246,7 @@ Para adicionar "novocampo" à funcionalidade de Grupos, faça o seguinte:
 
 3. **Atualizar as colunas da tabela**:
    ```typescript
-   // src/config/group/columns.tsx
+   // src/config/group/GroupColumns.tsx
    // Adicionar à configuração de colunas
    {
      header: t('novocampo'),
@@ -227,4 +258,31 @@ Para adicionar "novocampo" à funcionalidade de Grupos, faça o seguinte:
    },
    ```
 
-Cada uma destas implementações inclui a atualização do tipo de dados, adição do campo ao formulário de entrada e adição do campo à visualização em tabela. Lembre-se de adicionar também as devidas traduções no arquivo de idiomas para que o novo campo apareça corretamente na interface.
+4. **Adicionar validação para o campo (opcional)**:
+   ```typescript
+   // src/config/group/GroupForms.tsx
+   // No método validate()
+   if (!formData.novocampo.trim()) {
+     newErrors.novocampo = t('novocampoRequired');
+   }
+   ```
+
+## Resumo dos Arquivos a Modificar
+
+### Para Empresas
+- src/types/company.ts
+- src/config/company/CompanyForm.tsx
+- src/config/company/CompanyColumns.tsx
+
+### Para Usuários
+- src/types/user.ts
+- src/config/user/UserForm.tsx
+- src/config/user/UserColumns.tsx
+
+### Para Grupos
+- src/types/group.ts
+- src/config/group/GroupForms.tsx
+- src/config/group/GroupColumns.tsx
+
+### Geral
+- src/i18n/index.ts (para adicionar traduções)

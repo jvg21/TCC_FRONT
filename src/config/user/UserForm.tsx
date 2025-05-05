@@ -11,11 +11,11 @@ interface UserFormProps {
   onSubmit: (userData: Omit<User, 'userId' | 'isActive' | 'createdAt' | 'updatedAt'>) => Promise<void>;
 }
 
-export const UserForm: React.FC<UserFormProps> = ({ 
-  user, 
-  isOpen, 
-  onClose, 
-  onSubmit 
+export const UserForm: React.FC<UserFormProps> = ({
+  user,
+  isOpen,
+  onClose,
+  onSubmit
 }) => {
   const { t } = useTranslation();
   const isEditing = !!user;
@@ -26,6 +26,8 @@ export const UserForm: React.FC<UserFormProps> = ({
     { value: '3', label: t('employee') || 'Employee' }
   ];
 
+  //========================================================================
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -35,8 +37,6 @@ export const UserForm: React.FC<UserFormProps> = ({
     preferredTheme: '1',
     companyId: 0
   });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (user) {
@@ -52,16 +52,19 @@ export const UserForm: React.FC<UserFormProps> = ({
     }
   }, [user]);
 
+//========================================================================
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -69,32 +72,32 @@ export const UserForm: React.FC<UserFormProps> = ({
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = t('nameRequired');
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = t('emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = t('invalidEmail');
     }
-    
+
     if (!isEditing && !formData.password.trim()) {
       newErrors.password = t('passwordRequired');
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
-    
+
     try {
       // Converter campos para números apropriados
       const userData = {
@@ -104,7 +107,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         preferredTheme: parseInt(formData.preferredTheme, 10),
         companyId: formData.companyId
       };
-      
+
       await onSubmit(userData);
       onClose();
     } catch (error) {
@@ -129,7 +132,7 @@ export const UserForm: React.FC<UserFormProps> = ({
             error={errors.name}
             required
           />
-          
+
           <FormInput
             id="email"
             name="email"
@@ -140,7 +143,19 @@ export const UserForm: React.FC<UserFormProps> = ({
             error={errors.email}
             required
           />
-          
+
+          {/* // ===============================================
+          <FormInput
+              id="novocampo"
+              name="novocampo"
+              label={t('novocampo')}
+              value={formData.novocampo}
+              onChange={handleChange}
+              error={errors.novocampo}
+              required
+            />
+  // =============================================== */}
+
           {!isEditing && (
             <FormInput
               id="password"
@@ -153,7 +168,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               required
             />
           )}
-          
+
           <FormSelect
             id="profile"
             name="profile"
@@ -164,7 +179,7 @@ export const UserForm: React.FC<UserFormProps> = ({
             error={errors.profile}
             required
           />
-          
+
           {/* Preferências de idioma e tema */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect
@@ -179,7 +194,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               ]}
               error={errors.preferredLanguage}
             />
-            
+
             <FormSelect
               id="preferredTheme"
               name="preferredTheme"
@@ -194,7 +209,7 @@ export const UserForm: React.FC<UserFormProps> = ({
             />
           </div>
         </div>
-        
+
         <div className="mt-6 flex justify-end space-x-3">
           <button
             type="button"

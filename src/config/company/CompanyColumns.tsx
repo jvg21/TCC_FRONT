@@ -38,6 +38,15 @@ export const getCompanyColumns = ({ onEdit, onToggle }: GetColumnsProps): Column
         </div>
       )
     },
+    //========================================================================
+    // {
+    //   header: t('novocampo'),
+    //   accessor: (company) => (
+    //     <div className="text-sm text-gray-500 dark:text-gray-300">
+    //       {company.novocampo}
+    //     </div>
+    //   )
+    // },
     {
       header: t('email'),
       accessor: (company) => (

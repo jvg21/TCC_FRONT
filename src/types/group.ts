@@ -1,6 +1,3 @@
-// Atualização do src/types/group.ts
-// Garantindo que o tipo Group inclui corretamente o array de usuários
-
 import { User } from "./user";
 
 export interface Group {
@@ -10,6 +7,7 @@ export interface Group {
   isActive: boolean;
   companyId: number;
   userId: number; 
+  //novocampo: string;
   createdAt: string;
   updatedAt: string;
   users?: User[]; // Usuários associados ao grupo

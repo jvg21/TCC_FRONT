@@ -25,6 +25,8 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
     const [loadingUsers, setLoadingUsers] = useState(false);
     const isEditing = !!group;
 
+
+    //========================================================================
     const [formData, setFormData] = useState({
         name: '',
         description: ''
@@ -39,6 +41,8 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
             });
         }
     }, [group]);
+
+    //========================================================================
 
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [availableUsers, setAvailableUsers] = useState<User[]>([]);
@@ -230,6 +234,18 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
                         error={errors.name}
                         required
                     />
+
+                      {/* // ===============================================
+ <FormInput
+     id="novocampo"
+     name="novocampo"
+     label={t('novocampo')}
+     value={formData.novocampo}
+     onChange={handleChange}
+     error={errors.novocampo}
+     required
+   />
+  // =============================================== */}
 
                     <FormInput
                         id="description"

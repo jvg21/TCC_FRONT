@@ -17,16 +17,17 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
   const { addCompany, updateCompany, deleteCompany } = useCompanyStore();
   const isEditing = !!company;
 
+  // ===============================================
   const [formData, setFormData] = useState({
     name: '',
     taxId: '',
     email: '',
     phone: '',
     adress: '',
+    //novocampo: '',
     zipCode: ''
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (company) {
@@ -36,10 +37,15 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
         email: company.email,
         phone: company.phone,
         adress: company.adress,
+        //novocampo: company.novocampo || '', // Add this field with fallback
         zipCode: company.zipCode,
       });
     }
   }, [company]);
+
+  // ===============================================
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -167,6 +173,18 @@ export const CompanyForm = ({ company, isOpen, onClose }: CompanyFormProps) => {
             placeholder="00.000.000/0000-00"
             helpText={`${t('formatInfo')}: 00.000.000/0000-00`}
           />
+
+  {/* // ===============================================
+ <FormInput
+     id="novocampo"
+     name="novocampo"
+     label={t('novocampo')}
+     value={formData.novocampo}
+     onChange={handleChange}
+     error={errors.novocampo}
+     required
+   />
+  // =============================================== */}
 
           <FormInput
             id="email"

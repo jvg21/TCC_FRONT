@@ -7,6 +7,7 @@ export interface Company {
   adress: string;
   zipCode: string;
   isActive: boolean;
+  //novocampo: string; // Add this new field
   createdAt: string;
   updatedAt: string;
 }
