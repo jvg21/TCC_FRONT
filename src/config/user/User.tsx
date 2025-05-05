@@ -4,14 +4,13 @@ import { Users } from 'lucide-react';
 import { User } from '../../types/user';
 import { useUserStore } from '../../store/userStore';
 import { useAuthStore } from '../../store/authStore';
-import { Column, DataTable } from '../../components/common/DataTable';
-import { StatusBadge } from '../../components/common/StatusBadge';
-import { ActionButtons } from '../../components/common/ActionButtons';
+import { DataTable } from '../../components/common/DataTable';
 import { PageLayout } from '../../components/common/PageLayout';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { SearchBar } from '../../components/common/SearchBar';
 import { UserForm } from './UserForm';
 import { ConfirmationModal } from '../../components/forms/ConfirmationModal';
+import { getUserColumns } from './UserColumns';
 
 export const UserManagement = () => {
   const { t } = useTranslation();
@@ -22,7 +21,7 @@ export const UserManagement = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToToggle, setUserToToggle] = useState<User | null>(null);
 
-  // Verificação se o usuário atual é funcionário (Profile 3)
+  // Check if current user is an employee (Profile 3)
   const isEmployee = currentUser?.profile === 3;
 
   useEffect(() => {
@@ -64,95 +63,20 @@ export const UserManagement = () => {
     }
   };
 
-  const getProfileName = (profileId: number): string => {
-    switch (profileId) {
-      case 1:
-        return t('administrator');
-      case 2:
-        return t('manager');
-      case 3:
-        return t('employee');
-      default:
-        return t('unknown');
-    }
-  };
-
-  // Definição das colunas da tabela - Remove a coluna de ações para funcionários
-  const getColumns = (): Column<User>[] => {
-    const baseColumns: Column<User>[] = [
-      {
-        header: t('name'),
-        accessor: (user) => (
-          <div className="text-sm font-medium text-gray-900 dark:text-white">
-            {user.name}
-          </div>
-        )
-      },
-      {
-        header: t('email'),
-        accessor: (user) => (
-          <div className="text-sm text-gray-500 dark:text-gray-300">
-            {user.email}
-          </div>
-        )
-      },
-      {
-        header: t('profile'),
-        accessor: (user) => (
-          <div className="text-sm text-gray-500 dark:text-gray-300">
-            {getProfileName(user.profile)}
-          </div>
-        )
-      },
-      {
-        header: t('status'),
-        accessor: (user) => (
-          <StatusBadge
-            label={user.isActive ? t('active') : t('inactive')}
-            variant={user.isActive ? 'success' : 'danger'}
-          />
-        )
-      },
-      {
-        header: t('lastLoginAt'),
-        accessor: (user) => (
-          <div className="text-sm text-gray-500 dark:text-gray-300">
-            {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : '-'}
-          </div>
-        )
-      }
-    ];
-
-    if (!isEmployee) {
-      baseColumns.push({
-        header: t('actions'),
-        accessor: (user) => {
-          const canEdit = currentUser!.profile <= user.profile;
-          
-          return (
-            <ActionButtons
-              onEdit={canEdit ? () => setEditingUser(user) : undefined}
-              onToggle={canEdit ? () => setUserToToggle(user) : undefined}
-              isActive={user.isActive}
-              showToggle={canEdit}
-              showDelete={false}
-              editTooltip={t('editEmployee')}
-            />
-          );
-        },
-        className: 'text-right'
-      });
-    }
-    
-    return baseColumns;
-  };
+  // Get columns configuration from UserColumns.tsx
+  const columns = getUserColumns({
+    onEdit: setEditingUser,
+    onToggle: setUserToToggle,
+    currentUser,
+    isEmployee
+  });
 
   return (
     <PageLayout>
       <SectionHeader
         title={t('employeeManagement')}
         icon={<Users className="h-8 w-8 text-blue-500" />}
-        showAddButton={!isEmployee} // Oculta botão de adicionar para funcionários
+        showAddButton={!isEmployee}
         addButtonLabel={t('addEmployee')}
         onAddClick={() => setIsAddModalOpen(true)}
       />
@@ -166,7 +90,7 @@ export const UserManagement = () => {
       </div>
 
       <DataTable
-        columns={getColumns()}
+        columns={columns}
         data={filteredUsers}
         keyExtractor={(user) => user.userId.toString()}
         isLoading={loading}
@@ -176,7 +100,7 @@ export const UserManagement = () => {
         searchTerm={searchTerm}
       />
 
-      {/* Add Employee Modal - somente renderizado se não for funcionário */}
+      {/* Add Employee Modal - only rendered if not an employee */}
       {!isEmployee && isAddModalOpen && (
         <UserForm
           isOpen={isAddModalOpen}
@@ -185,7 +109,7 @@ export const UserManagement = () => {
         />
       )}
 
-      {/* Edit Employee Modal - somente renderizado se não for funcionário */}
+      {/* Edit Employee Modal - only rendered if not an employee */}
       {!isEmployee && editingUser && (
         <UserForm
           user={editingUser}
@@ -195,7 +119,7 @@ export const UserManagement = () => {
         />
       )}
 
-      {/* Toggle Status Confirmation Modal - somente renderizado se não for funcionário */}
+      {/* Toggle Status Confirmation Modal - only rendered if not an employee */}
       {!isEmployee && userToToggle && (
         <ConfirmationModal
           isOpen={true}

@@ -81,6 +81,7 @@ export const getUserColumns = ({
     baseColumns.push({
       header: t('actions'),
       accessor: (user) => {
+        // erro NORMAL, SEGUE O JOGO
         const canEdit = currentUser?.profile <= user.profile;
         
         return (
