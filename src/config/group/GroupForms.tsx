@@ -30,6 +30,16 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
         description: ''
     });
 
+    // Carregar dados do grupo ao editar
+    useEffect(() => {
+        if (group) {
+            setFormData({
+                name: group.name,
+                description: group.description
+            });
+        }
+    }, [group]);
+
     const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
     const [availableUsers, setAvailableUsers] = useState<User[]>([]);
     const [userSearchTerm, setUserSearchTerm] = useState('');
@@ -55,20 +65,20 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
     useEffect(() => {
         if (users.length > 0) {
             // Inicialmente, todos os usuários disponíveis são da empresa atual
-            const usersInSameCompany = users.filter(u => 
+            const usersInSameCompany = users.filter(u =>
                 u.companyId === currentUser?.companyId && u.isActive
             );
-            
+
             if (group && group.users) {
                 // Se estiver editando, configura os usuários selecionados
                 const groupUserIds = group.users.map(u => u.userId);
-                const initialSelectedUsers = usersInSameCompany.filter(u => 
+                const initialSelectedUsers = usersInSameCompany.filter(u =>
                     groupUserIds.includes(u.userId)
                 );
                 setSelectedUsers(initialSelectedUsers);
-                
+
                 // Usuários disponíveis são aqueles que não estão no grupo
-                const initialAvailableUsers = usersInSameCompany.filter(u => 
+                const initialAvailableUsers = usersInSameCompany.filter(u =>
                     !groupUserIds.includes(u.userId)
                 );
                 setAvailableUsers(initialAvailableUsers);
@@ -79,15 +89,7 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
         }
     }, [users, group, currentUser?.companyId]);
 
-    // Carregar dados do grupo ao editar
-    useEffect(() => {
-        if (group) {
-            setFormData({
-                name: group.name,
-                description: group.description
-            });
-        }
-    }, [group]);
+
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -132,7 +134,7 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
     const handleAddUser = (user: User) => {
         // Atualiza a lista de usuários selecionados
         setSelectedUsers([...selectedUsers, user]);
-        
+
         // Remove o usuário da lista de disponíveis
         setAvailableUsers(availableUsers.filter(u => u.userId !== user.userId));
     };
@@ -141,7 +143,7 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
     const handleRemoveUser = (user: User) => {
         // Remove o usuário da lista de selecionados
         setSelectedUsers(selectedUsers.filter(u => u.userId !== user.userId));
-        
+
         // Adiciona o usuário de volta à lista de disponíveis
         setAvailableUsers([...availableUsers, user]);
     };
@@ -159,31 +161,31 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
             if (isEditing && group) {
                 // Atualizar grupo existente
                 await updateGroup(group.groupId, formData);
-                
+
                 // Sincronizar usuários no grupo
                 const currentUserIds = group.users?.map(u => u.userId) || [];
                 const newUserIds = selectedUsers.map(u => u.userId);
-                
+
                 // Usuários a adicionar (estão em newUserIds mas não em currentUserIds)
-                const usersToAdd = selectedUsers.filter(u => 
+                const usersToAdd = selectedUsers.filter(u =>
                     !currentUserIds.includes(u.userId)
                 );
-                
+
                 // Usuários a remover (estão em currentUserIds mas não em newUserIds)
-                const usersToRemove = group.users?.filter(u => 
+                const usersToRemove = group.users?.filter(u =>
                     !newUserIds.includes(u.userId)
                 ) || [];
-                
+
                 // Adicionar novos usuários
                 for (const user of usersToAdd) {
                     await addUserToGroup(group.groupId, user.userId);
                 }
-                
+
                 // Remover usuários que não estão mais no grupo
                 for (const user of usersToRemove) {
                     await removeUserFromGroup(group.groupId, user.userId);
                 }
-                
+
             } else {
                 // Criar novo grupo - adicionando o userId do usuário atual
                 const newGroup = await addGroup({
@@ -191,7 +193,7 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
                     companyId: currentUser?.companyId || 0,
                     userId: currentUser?.userId || 0
                 });
-                
+
                 // Adicionar usuários ao novo grupo
                 if (newGroup && newGroup.groupId) {
                     for (const user of selectedUsers) {
@@ -199,7 +201,7 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
                     }
                 }
             }
-            
+
             onClose();
         } catch (error) {
             console.error('Form submission failed:', error);
@@ -275,14 +277,14 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
                                 </div>
                             )}
                         </div>
-                        
+
                         {/* Adicionar Usuários */}
                         <div className="mt-4">
                             <div className="flex justify-between items-center">
                                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     {t('addUsers')}
                                 </h4>
-                                
+
                                 {/* Barra de Pesquisa */}
                                 <div className="relative w-64">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -306,7 +308,7 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
                                     )}
                                 </div>
                             </div>
-                            
+
                             {/* Lista de Usuários Disponíveis */}
                             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm mt-2 max-h-60 overflow-y-auto">
                                 {loadingUsers ? (
@@ -348,7 +350,7 @@ export const GroupForm = ({ group, isOpen, onClose }: GroupFormProps) => {
                         </div>
                     </div>
                 </div>
-                
+
                 <div className="mt-8 flex justify-end space-x-3">
                     <button
                         type="button"
