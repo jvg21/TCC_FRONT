@@ -284,5 +284,5 @@ Para adicionar "novocampo" à funcionalidade de Grupos, faça o seguinte:
 - src/config/group/GroupForms.tsx
 - src/config/group/GroupColumns.tsx
 
-### Geral
+### Geral (OPICIONAL)
 - src/i18n/index.ts (para adicionar traduções)
