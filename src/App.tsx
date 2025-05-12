@@ -1,3 +1,4 @@
+// src/App.tsx - Atualização para incluir novas rotas de documento
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -12,6 +13,8 @@ import { ForgotPassword } from './components/pages/ForgotPassword';
 import { UserManagement } from './config/user/User';
 import { GroupManagement } from './config/group/Group';
 import { CompaniesManagement } from './config/company/Companies';
+import { DocumentManagement } from './config/document/Document'; // Importar o componente DocumentManagement
+import { DocumentWorkspace } from './config/document/DocumentWorkspace'; // Importar o componente DocumentWorkspace
 
 // Inicialização do tema no carregamento da aplicação
 const initTheme = () => {
@@ -77,6 +80,23 @@ function App() {
                 ) : (
                   <Navigate to="/dashboard" />
                 )}
+              </PrivateRoute>
+            }
+          />
+          {/* Novas rotas para gerenciamento de documentos */}
+          <Route
+            path='/documents'
+            element={
+              <PrivateRoute>
+                <DocumentManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/documents/workspace'
+            element={
+              <PrivateRoute>
+                <DocumentWorkspace />
               </PrivateRoute>
             }
           />
