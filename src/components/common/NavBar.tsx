@@ -1,5 +1,6 @@
+// src/components/common/NavBar.tsx - Atualização para incluir link de documentos
 import { useState } from 'react';
-import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe, Users, Building, Grid, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe, Users, Building, Grid, Menu, X, FileText } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuthStore } from '../../store/authStore';
@@ -81,6 +82,21 @@ export const NavBar = () => {
                                     className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
                                 >
                                     {t('users')}
+                                </Link>
+                                
+                                {/* Link para documentos */}
+                                <Link 
+                                    to="/documents" 
+                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
+                                >
+                                    {t('documents')}
+                                </Link>
+                                
+                                <Link 
+                                    to="/documents/workspace" 
+                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
+                                >
+                                    {t('documentWorkspace')}
                                 </Link>
                             </div>
                         </div>
@@ -210,6 +226,23 @@ export const NavBar = () => {
                         >
                             <Users className="h-5 w-5 inline-block mr-2" />
                             {t('users')}
+                        </button>
+                        
+                        {/* Links móveis para documentos */}
+                        <button 
+                            onClick={() => handleNavigate('/documents')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <FileText className="h-5 w-5 inline-block mr-2" />
+                            {t('documents')}
+                        </button>
+                        
+                        <button 
+                            onClick={() => handleNavigate('/documents/workspace')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <FileText className="h-5 w-5 inline-block mr-2" />
+                            {t('documentWorkspace')}
                         </button>
                     </div>
                 </div>
