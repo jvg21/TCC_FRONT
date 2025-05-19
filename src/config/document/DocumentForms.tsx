@@ -1,3 +1,4 @@
+// src/config/document/DocumentForms.tsx - Versão atualizada
 import { useState, useEffect } from 'react';
 import { useDocumentStore } from '../../store/documentStore';
 import { Document } from '../../types/document';
@@ -5,15 +6,24 @@ import { useLanguage } from '../../hooks/useLanguage';
 import { useAuthStore } from '../../store/authStore';
 import { FormInput, FormSelect, FormTextarea } from '../../components/forms/FormField';
 import { Modal } from '../../components/forms/Modal';
+import { FullScreenModal } from '../../components/forms/FullScreenModal';
+import { Save, X } from 'lucide-react';
 
 interface DocumentFormProps {
   document?: Document;
   isOpen: boolean;
   onClose: () => void;
-  isEmbedded?: boolean; // Usado para determinar se o formulário está embutido no DocumentWorkspace
+  isEmbedded?: boolean;
+  isFullScreen?: boolean;
 }
 
-export const DocumentForm = ({ document, isOpen, onClose, isEmbedded = false }: DocumentFormProps) => {
+export const DocumentForm = ({ 
+  document, 
+  isOpen, 
+  onClose, 
+  isEmbedded = false,
+  isFullScreen = false
+}: DocumentFormProps) => {
   const { t } = useLanguage();
   const { user } = useAuthStore();
   const { addDocument, updateDocument, folders, fetchFolders } = useDocumentStore();
@@ -115,10 +125,81 @@ export const DocumentForm = ({ document, isOpen, onClose, isEmbedded = false }: 
   const formatOptions = [
     { value: 'html', label: 'HTML' },
     { value: 'md', label: 'Markdown' },
-    { value: 'txt', label: 'Texto Simples' },
+    { value: 'txt', label: t('plainText') },
     { value: 'doc', label: 'Word Document' },
     { value: 'pdf', label: 'PDF' }
   ];
+
+  // Conteúdo do formulário
+  const formContent = (
+    <form onSubmit={handleSubmit} className={isFullScreen ? 'h-full flex flex-col' : ''}>
+      <div className={`space-y-4 ${isFullScreen ? 'flex-1 overflow-auto p-6' : ''}`}>
+        <FormInput
+          id="title"
+          name="title"
+          label={t('title')}
+          value={formData.title}
+          onChange={handleChange}
+          error={errors.title}
+          required
+        />
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormSelect
+            id="format"
+            name="format"
+            label={t('format')}
+            value={formData.format}
+            onChange={handleChange}
+            options={formatOptions}
+            error={errors.format}
+          />
+          
+          <FormSelect
+            id="folderId"
+            name="folderId"
+            label={t('folder')}
+            value={formData.folderId}
+            onChange={handleChange}
+            options={folderOptions}
+            error={errors.folderId}
+            required
+          />
+        </div>
+        
+        <FormTextarea
+          id="content"
+          name="content"
+          label={t('content')}
+          value={formData.content}
+          onChange={handleChange}
+          error={errors.content}
+          required
+          rows={isFullScreen ? 20 : 10}
+          placeholder={t('enterDocumentContent')}
+          className={isFullScreen ? 'flex-1' : ''}
+        />
+      </div>
+      
+      <div className={`${isFullScreen ? 'p-4 border-t border-gray-200 dark:border-gray-700' : 'mt-6'} flex justify-end space-x-3`}>
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
+        >
+          <X className="h-4 w-4 mr-2" />
+          {t('cancel')}
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {isEditing ? t('update') : t('save')}
+        </button>
+      </div>
+    </form>
+  );
 
   // Para formulários embutidos (no DocumentWorkspace), renderizamos sem o Modal
   if (isEmbedded) {
@@ -131,73 +212,26 @@ export const DocumentForm = ({ document, isOpen, onClose, isEmbedded = false }: 
         </div>
         
         <div className="flex-1 overflow-auto p-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <FormInput
-              id="title"
-              name="title"
-              label={t('title')}
-              value={formData.title}
-              onChange={handleChange}
-              error={errors.title}
-              required
-            />
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormSelect
-                id="format"
-                name="format"
-                label={t('format')}
-                value={formData.format}
-                onChange={handleChange}
-                options={formatOptions}
-                error={errors.format}
-              />
-              
-              <FormSelect
-                id="folderId"
-                name="folderId"
-                label={t('folder')}
-                value={formData.folderId}
-                onChange={handleChange}
-                options={folderOptions}
-                error={errors.folderId}
-                required
-              />
-            </div>
-            
-            <FormTextarea
-              id="content"
-              name="content"
-              label={t('content')}
-              value={formData.content}
-              onChange={handleChange}
-              error={errors.content}
-              required
-              rows={15}
-              placeholder={t('enterDocumentContent')}
-            />
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                {t('cancel')}
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                {isEditing ? t('update') : t('save')}
-              </button>
-            </div>
-          </form>
+          {formContent}
         </div>
       </div>
     );
   }
 
+  // Se o modo de tela cheia estiver ativado, usamos o FullScreenModal
+  if (isFullScreen) {
+    return (
+      <FullScreenModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={isEditing ? t('editDocument') : t('addDocument')}
+      >
+        {formContent}
+      </FullScreenModal>
+    );
+  }
+
+  // Caso contrário, usamos o Modal normal
   return (
     <Modal
       isOpen={isOpen}
@@ -205,70 +239,7 @@ export const DocumentForm = ({ document, isOpen, onClose, isEmbedded = false }: 
       title={isEditing ? t('editDocument') : t('addDocument')}
       maxWidth="lg"
     >
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          <FormInput
-            id="title"
-            name="title"
-            label={t('title')}
-            value={formData.title}
-            onChange={handleChange}
-            error={errors.title}
-            required
-          />
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormSelect
-              id="format"
-              name="format"
-              label={t('format')}
-              value={formData.format}
-              onChange={handleChange}
-              options={formatOptions}
-              error={errors.format}
-            />
-            
-            <FormSelect
-              id="folderId"
-              name="folderId"
-              label={t('folder')}
-              value={formData.folderId}
-              onChange={handleChange}
-              options={folderOptions}
-              error={errors.folderId}
-              required
-            />
-          </div>
-          
-          <FormTextarea
-            id="content"
-            name="content"
-            label={t('content')}
-            value={formData.content}
-            onChange={handleChange}
-            error={errors.content}
-            required
-            rows={10}
-            placeholder={t('enterDocumentContent')}
-          />
-        </div>
-        
-        <div className="mt-6 flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            {t('cancel')}
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            {isEditing ? t('update') : t('save')}
-          </button>
-        </div>
-      </form>
+      {formContent}
     </Modal>
   );
 };

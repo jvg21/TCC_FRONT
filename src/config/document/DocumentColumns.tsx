@@ -1,14 +1,15 @@
-// src/config/document/DocumentColumns.tsx
+// src/config/document/DocumentColumns.tsx - Versão atualizada
 import { Column } from '../../components/common/DataTable';
 import { Document } from '../../types/document';
 import { ActionButtons } from '../../components/common/ActionButtons';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { FileText, Edit } from 'lucide-react';
+import { FileText, Edit, Maximize, Eye } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { formatDateString } from '../../utils/formatDateString';
 
 interface GetColumnsProps {
   onEdit: (document: Document) => void;
+  onEditFullScreen: (document: Document) => void;
   onToggle: (document: Document) => void;
   onView: (document: Document) => void;
   currentUserId: number;
@@ -17,6 +18,7 @@ interface GetColumnsProps {
 
 export const getDocumentColumns = ({
   onEdit,
+  onEditFullScreen,
   onToggle,
   onView,
   currentUserId,
@@ -85,17 +87,49 @@ export const getDocumentColumns = ({
             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
             title={t('viewDocument')}
           >
-            <FileText className="h-5 w-5" />
+            <Eye className="h-5 w-5" />
           </button>
           
-          <ActionButtons
-            onEdit={canModify ? () => onEdit(document) : undefined}
-            onToggle={canModify ? () => onToggle(document) : undefined}
-            isActive={document.isActive}
-            showToggle={canModify}
-            showDelete={false}
-            editTooltip={t('editDocument')}
-          />
+          {canModify && (
+            <div className="flex space-x-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(document);
+                }}
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+                title={t('editDocument')}
+              >
+                <Edit className="h-5 w-5" />
+              </button>
+              
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditFullScreen(document);
+                }}
+                className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 transition-colors duration-200"
+                title={t('editFullScreen')}
+              >
+                <Maximize className="h-5 w-5" />
+              </button>
+              
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggle(document);
+                }}
+                className={`text-${document.isActive ? 'red' : 'green'}-600 hover:text-${document.isActive ? 'red' : 'green'}-800 dark:text-${document.isActive ? 'red' : 'green'}-400 dark:hover:text-${document.isActive ? 'red' : 'green'}-300 transition-colors duration-200`}
+                title={document.isActive ? t('deactivateDocument') : t('activateDocument')}
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={document.isActive 
+                    ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" 
+                    : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       );
     },
