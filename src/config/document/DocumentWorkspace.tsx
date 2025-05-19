@@ -1,3 +1,4 @@
+// src/config/document/DocumentWorkspace.tsx - Versão atualizada
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Document } from '../../types/document';
@@ -6,7 +7,7 @@ import { PageLayout } from '../../components/common/PageLayout';
 import { DocumentBrowser } from './DocumentBrowser';
 import { DocumentViewer } from './DocumentViewer';
 import { ConfirmationModal } from '../../components/forms/ConfirmationModal';
-import { FileText, Save, History, Tag as TagIcon } from 'lucide-react';
+import { FileText, Save, History, Tag as TagIcon, Maximize, Minimize, Edit } from 'lucide-react';
 import { DocumentForm } from './DocumentForms';
 
 /**
@@ -22,21 +23,25 @@ export const DocumentWorkspace = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isAddingDocument, setIsAddingDocument] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   
   // Manipuladores de ação
   const handleDocumentSelect = (document: Document) => {
     setSelectedDocument(document);
     setIsEditMode(false);
+    setIsFullScreen(false);
   };
   
-  const handleAddDocument = () => {
+  const handleAddDocument = (fullScreen = false) => {
     setSelectedDocument(null);
     setIsAddingDocument(true);
+    setIsFullScreen(fullScreen);
   };
   
-  const handleEditDocument = () => {
+  const handleEditDocument = (fullScreen = false) => {
     if (selectedDocument) {
       setIsEditMode(true);
+      setIsFullScreen(fullScreen);
     }
   };
   
@@ -57,6 +62,12 @@ export const DocumentWorkspace = () => {
       }
     }
   };
+
+  const handleCloseForm = () => {
+    setIsEditMode(false);
+    setIsAddingDocument(false);
+    setIsFullScreen(false);
+  };
   
   return (
     <PageLayout>
@@ -65,7 +76,7 @@ export const DocumentWorkspace = () => {
         <div className="w-64 flex-shrink-0 overflow-auto">
           <DocumentBrowser
             onDocumentSelect={handleDocumentSelect}
-            onAddDocument={handleAddDocument}
+            onAddDocument={() => handleAddDocument(false)}
             selectedDocumentId={selectedDocument?.documentId}
           />
         </div>
@@ -83,11 +94,21 @@ export const DocumentWorkspace = () => {
                 
                 <div className="flex space-x-2">
                   <button
-                    onClick={handleEditDocument}
+                    onClick={() => handleEditDocument(false)}
                     className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                    title={t('editInSidebar')}
                   >
-                    <Save className="h-4 w-4 mr-1" />
+                    <Edit className="h-4 w-4 mr-1" />
                     {t('edit')}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleEditDocument(true)}
+                    className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+                    title={t('editFullScreen')}
+                  >
+                    <Maximize className="h-4 w-4 mr-1" />
+                    {t('fullScreen')}
                   </button>
                   
                   <button
@@ -119,15 +140,17 @@ export const DocumentWorkspace = () => {
             <DocumentForm
               document={selectedDocument}
               isOpen={true}
-              onClose={() => setIsEditMode(false)}
-              isEmbedded={true}
+              onClose={handleCloseForm}
+              isEmbedded={!isFullScreen}
+              isFullScreen={isFullScreen}
             />
           ) : isAddingDocument ? (
             // Modo de adição de novo documento
             <DocumentForm
               isOpen={true}
-              onClose={() => setIsAddingDocument(false)}
-              isEmbedded={true}
+              onClose={handleCloseForm}
+              isEmbedded={!isFullScreen}
+              isFullScreen={isFullScreen}
             />
           ) : (
             // Mensagem quando nenhum documento está selecionado
@@ -136,16 +159,25 @@ export const DocumentWorkspace = () => {
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 {t('noDocumentSelected')}
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mb-4">
                 {t('selectDocumentMessage')}
               </p>
-              <button
-                onClick={handleAddDocument}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                {t('createNewDocument')}
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => handleAddDocument(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  {t('createNewDocument')}
+                </button>
+                {/* <button
+                  onClick={() => handleAddDocument(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
+                >
+                  <Maximize className="h-4 w-4 mr-2" />
+                  {t('createInFullScreen')}
+                </button> */}
+              </div>
             </div>
           )}
         </div>

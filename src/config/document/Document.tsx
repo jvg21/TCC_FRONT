@@ -1,7 +1,7 @@
-// src/config/document/Document.tsx
+// src/config/document/Document.tsx - Versão atualizada
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileText } from 'lucide-react';
+import { FileText, Maximize } from 'lucide-react';
 import { Document } from '../../types/document';
 import { useDocumentStore } from '../../store/documentStore';
 import { useAuthStore } from '../../store/authStore';
@@ -20,7 +20,9 @@ export const DocumentManagement = () => {
   const { user: currentUser } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddFullScreenOpen, setIsAddFullScreenOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditFullScreenOpen, setIsEditFullScreenOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [currentDocument, setCurrentDocument] = useState<Document | null>(null);
@@ -48,14 +50,22 @@ export const DocumentManagement = () => {
     }
   };
 
-  const openAddModal = () => {
+  const openAddModal = (fullScreen = false) => {
     setCurrentDocument(null);
-    setIsAddModalOpen(true);
+    if (fullScreen) {
+      setIsAddFullScreenOpen(true);
+    } else {
+      setIsAddModalOpen(true);
+    }
   };
 
-  const openEditModal = (document: Document) => {
+  const openEditModal = (document: Document, fullScreen = false) => {
     setCurrentDocument(document);
-    setIsEditModalOpen(true);
+    if (fullScreen) {
+      setIsEditFullScreenOpen(true);
+    } else {
+      setIsEditModalOpen(true);
+    }
   };
 
   const openStatusModal = (document: Document) => {
@@ -70,7 +80,8 @@ export const DocumentManagement = () => {
 
   // Get columns configuration
   const columns = getDocumentColumns({
-    onEdit: openEditModal,
+    onEdit: (doc) => openEditModal(doc, false),
+    onEditFullScreen: (doc) => openEditModal(doc, true),
     onToggle: openStatusModal,
     onView: openViewer,
     currentUserId: currentUser?.userId || 0,
@@ -84,15 +95,24 @@ export const DocumentManagement = () => {
         icon={<FileText className="h-8 w-8 text-blue-500" />}
         showAddButton={true}
         addButtonLabel={t('addDocument')}
-        onAddClick={openAddModal}
+        onAddClick={() => openAddModal(true)}
       />
 
-      <div className="mb-6">
-        <SearchBar
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder={t('searchDocuments')}
-        />
+      <div className="mb-6 flex justify-between items-center">
+        <div className="flex-1 mr-4">
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder={t('searchDocuments')}
+          />
+        </div>
+        {/* <button
+          onClick={() => openAddModal(true)}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center whitespace-nowrap"
+        >
+          <Maximize className="h-5 w-5 mr-2" />
+          {t('createFullScreen')}
+        </button> */}
       </div>
 
       <DataTable
@@ -111,6 +131,16 @@ export const DocumentManagement = () => {
         <DocumentForm
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
+          isFullScreen={false}
+        />
+      )}
+
+      {/* Add Document Full Screen */}
+      {isAddFullScreenOpen && (
+        <DocumentForm
+          isOpen={isAddFullScreenOpen}
+          onClose={() => setIsAddFullScreenOpen(false)}
+          isFullScreen={true}
         />
       )}
 
@@ -120,6 +150,17 @@ export const DocumentManagement = () => {
           document={currentDocument}
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
+          isFullScreen={false}
+        />
+      )}
+
+      {/* Edit Document Full Screen */}
+      {isEditFullScreenOpen && currentDocument && (
+        <DocumentForm
+          document={currentDocument}
+          isOpen={isEditFullScreenOpen}
+          onClose={() => setIsEditFullScreenOpen(false)}
+          isFullScreen={true}
         />
       )}
 
