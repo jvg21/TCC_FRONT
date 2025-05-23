@@ -1,4 +1,6 @@
-// src/App.tsx - Atualização para incluir novas rotas de documento
+// Atualizando App.tsx para incluir rotas de tarefas
+
+// src/App.tsx
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -13,8 +15,10 @@ import { ForgotPassword } from './components/pages/ForgotPassword';
 import { UserManagement } from './config/user/User';
 import { GroupManagement } from './config/group/Group';
 import { CompaniesManagement } from './config/company/Companies';
-import { DocumentManagement } from './config/document/Document'; // Importar o componente DocumentManagement
-import { DocumentWorkspace } from './config/document/DocumentWorkspace'; // Importar o componente DocumentWorkspace
+import { DocumentManagement } from './config/document/Document';
+import { DocumentWorkspace } from './config/document/DocumentWorkspace';
+import { TaskManagement } from './config/task/Task'; 
+import { TaskDashboard } from './config/task/TaskDashboard';
 
 // Inicialização do tema no carregamento da aplicação
 const initTheme = () => {
@@ -83,7 +87,7 @@ function App() {
               </PrivateRoute>
             }
           />
-          {/* Novas rotas para gerenciamento de documentos */}
+          {/* Rotas para gerenciamento de documentos */}
           <Route
             path='/documents'
             element={
@@ -100,6 +104,25 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          {/* Novas rotas para gerenciamento de tarefas */}
+          <Route
+            path='/tasks'
+            element={
+              <PrivateRoute>
+                <TaskManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/tasks/dashboard'
+            element={
+              <PrivateRoute>
+                <TaskDashboard />
+              </PrivateRoute>
+            }
+          />
+          
           <Route path="/" element={<Navigate to="/login" />} />
           
           {/* Rota para 404 - NotFound */}

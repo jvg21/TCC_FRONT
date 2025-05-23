@@ -1,6 +1,8 @@
-// src/components/common/NavBar.tsx - Atualização para incluir link de documentos
+// Atualizando o componente NavBar.tsx para incluir links para tarefas
+
+// src/components/common/NavBar.tsx
 import { useState } from 'react';
-import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe, Users, Building, Grid, Menu, X, FileText } from 'lucide-react';
+import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe, Users, Building, Grid, Menu, X, FileText, CheckSquare } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuthStore } from '../../store/authStore';
@@ -97,6 +99,21 @@ export const NavBar = () => {
                                     className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
                                 >
                                     {t('documentWorkspace')}
+                                </Link>
+                                
+                                {/* Novos links para tarefas */}
+                                <Link 
+                                    to="/tasks" 
+                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
+                                >
+                                    {t('tasks')}
+                                </Link>
+                                
+                                <Link 
+                                    to="/tasks/dashboard" 
+                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
+                                >
+                                    {t('taskDashboard')}
                                 </Link>
                             </div>
                         </div>
@@ -243,6 +260,23 @@ export const NavBar = () => {
                         >
                             <FileText className="h-5 w-5 inline-block mr-2" />
                             {t('documentWorkspace')}
+                        </button>
+                        
+                        {/* Links móveis para tarefas */}
+                        <button 
+                            onClick={() => handleNavigate('/tasks')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <CheckSquare className="h-5 w-5 inline-block mr-2" />
+                            {t('tasks')}
+                        </button>
+                        
+                        <button 
+                            onClick={() => handleNavigate('/tasks/dashboard')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <CheckSquare className="h-5 w-5 inline-block mr-2" />
+                            {t('taskDashboard')}
                         </button>
                     </div>
                 </div>
