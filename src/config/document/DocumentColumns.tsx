@@ -1,11 +1,12 @@
-// src/config/document/DocumentColumns.tsx - Versão atualizada
+// src/config/document/DocumentColumns.tsx - Versão atualizada com botão de versões
 import { Column } from '../../components/common/DataTable';
 import { Document } from '../../types/document';
 import { ActionButtons } from '../../components/common/ActionButtons';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { FileText, Edit, Maximize, Eye } from 'lucide-react';
+import { FileText, Edit, Maximize, Eye, Clock } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { formatDateString } from '../../utils/formatDateString';
+import { useNavigate } from 'react-router-dom';
 
 interface GetColumnsProps {
   onEdit: (document: Document) => void;
@@ -25,6 +26,11 @@ export const getDocumentColumns = ({
   isEmployee
 }: GetColumnsProps): Column<Document>[] => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  const handleViewVersions = (document: Document) => {
+    navigate(`/documents/${document.documentId}/versions`);
+  };
 
   const baseColumns: Column<Document>[] = [
     {
@@ -88,6 +94,14 @@ export const getDocumentColumns = ({
             title={t('viewDocument')}
           >
             <Eye className="h-5 w-5" />
+          </button>
+          
+          <button
+            onClick={() => handleViewVersions(document)}
+            className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors duration-200"
+            title={t('documentVersions')}
+          >
+            <Clock className="h-5 w-5" />
           </button>
           
           {canModify && (

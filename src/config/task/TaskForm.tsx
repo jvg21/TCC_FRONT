@@ -1,10 +1,9 @@
-// src/config/task/TaskForm.tsx
+// src/config/task/TaskForm.tsx - Versão Corrigida
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Task, TaskStatus, TaskPriority } from '../../types/task';
 import { useTaskStore } from '../../store/taskStore';
 import { useUserStore } from '../../store/userStore';
-import { useGroupStore } from '../../store/groupStore';
 import { useAuthStore } from '../../store/authStore';
 import { FormInput, FormSelect, FormTextarea } from '../../components/forms/FormField';
 import { Modal } from '../../components/forms/Modal';
@@ -20,38 +19,26 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
   const { user: currentUser } = useAuthStore();
   const { addTask, updateTask } = useTaskStore();
   const { users, fetchUsers } = useUserStore();
-  const { groups, fetchGroups } = useGroupStore();
   const isEditing = !!task;
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    status: TaskStatus.TODO.toString(),
-    priority: TaskPriority.MEDIUM.toString(),
+    status: TaskStatus.TODO,
+    priority: TaskPriority.MEDIUM,
     dueDate: '',
-    assigneeId: '',
-    groupId: '',
+    assigneeId: 0,
+    parentTaskId: 0,
     userId: currentUser?.userId || 0
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  // Buscar usuários e grupos ao montar o componente
+  // Buscar usuários ao montar o componente
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        await Promise.all([fetchUsers(), fetchGroups()]);
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadData();
-  }, [fetchUsers, fetchGroups]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   // Carregar dados da tarefa ao editar
   useEffect(() => {
@@ -59,11 +46,11 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
       setFormData({
         title: task.title || '',
         description: task.description || '',
-        status: task.status.toString(),
-        priority: task.priority.toString(),
-        dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
-        assigneeId: task.assigneeId ? task.assigneeId.toString() : '',
-        groupId: task.groupId ? task.groupId.toString() : '',
+        status: task.status || TaskStatus.TODO,
+        priority: task.priority || TaskPriority.MEDIUM,
+        dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+        assigneeId: task.assigneeId || 0,
+        parentTaskId: task.parentTaskId || 0,
         userId: task.userId
       });
     }
@@ -74,10 +61,15 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
   ) => {
     const { name, value } = e.target;
     
-    // Atualiza os dados do formulário
+    // Converte valores numéricos quando necessário
+    let processedValue: any = value;
+    if (name === 'status' || name === 'priority' || name === 'assigneeId' || name === 'parentTaskId') {
+      processedValue = parseInt(value) || 0;
+    }
+    
     setFormData({
       ...formData,
-      [name]: value
+      [name]: processedValue
     });
     
     // Limpa erros quando o campo é editado
@@ -111,13 +103,15 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
     try {
       setLoading(true);
       
-      // Preparar os dados da tarefa
+      // Preparar os dados da tarefa - CORRIGIDO
       const taskData = {
-        ...formData,
-        status: parseInt(formData.status) as TaskStatus,
-        priority: parseInt(formData.priority) as TaskPriority,
-        assigneeId: formData.assigneeId ? parseInt(formData.assigneeId) : undefined,
-        groupId: formData.groupId ? parseInt(formData.groupId) : undefined,
+        title: formData.title,
+        description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
+        dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : '',
+        ...(formData.assigneeId !== 0 && { assigneeId: formData.assigneeId }),
+        ...(formData.parentTaskId !== 0 && { parentTaskId: formData.parentTaskId }),
         userId: formData.userId
       };
       
@@ -140,7 +134,8 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
     { value: TaskStatus.TODO.toString(), label: t('todo') },
     { value: TaskStatus.IN_PROGRESS.toString(), label: t('inProgress') },
     { value: TaskStatus.REVIEW.toString(), label: t('inReview') },
-    { value: TaskStatus.DONE.toString(), label: t('done') }
+    { value: TaskStatus.DONE.toString(), label: t('done') },
+    { value: TaskStatus.ARCHIVED.toString(), label: t('archived') }
   ];
   
   const priorityOptions = [
@@ -152,25 +147,13 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
   
   // Filtrar usuários ativos da mesma empresa
   const assigneeOptions = [
-    { value: '', label: t('unassigned') }
+    { value: '0', label: t('unassigned') }
   ].concat(
     users
       .filter(u => u.isActive && u.companyId === currentUser?.companyId)
       .map(u => ({
         value: u.userId.toString(),
         label: u.name
-      }))
-  );
-  
-  // Filtrar grupos ativos da mesma empresa
-  const groupOptions = [
-    { value: '', label: t('noGroup') }
-  ].concat(
-    groups
-      .filter(g => g.isActive && g.companyId === currentUser?.companyId)
-      .map(g => ({
-        value: g.groupId.toString(),
-        label: g.name
       }))
   );
 
@@ -209,7 +192,7 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
               id="status"
               name="status"
               label={t('status')}
-              value={formData.status}
+              value={formData.status.toString()}
               onChange={handleChange}
               options={statusOptions}
               error={errors.status}
@@ -220,7 +203,7 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
               id="priority"
               name="priority"
               label={t('priority')}
-              value={formData.priority}
+              value={formData.priority.toString()}
               onChange={handleChange}
               options={priorityOptions}
               error={errors.priority}
@@ -243,22 +226,12 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
               id="assigneeId"
               name="assigneeId"
               label={t('assignee')}
-              value={formData.assigneeId}
+              value={formData.assigneeId.toString()}
               onChange={handleChange}
               options={assigneeOptions}
               error={errors.assigneeId}
             />
           </div>
-          
-          <FormSelect
-            id="groupId"
-            name="groupId"
-            label={t('group')}
-            value={formData.groupId}
-            onChange={handleChange}
-            options={groupOptions}
-            error={errors.groupId}
-          />
         </div>
         
         <div className="mt-6 flex justify-end space-x-3">

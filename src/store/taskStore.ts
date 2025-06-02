@@ -1,6 +1,6 @@
-// src/store/taskStore.ts
+// src/store/taskStore.ts - Atualizado para backend
 import { create } from 'zustand';
-import { Task, TaskState, TaskStatus, TaskPriority } from '../types/task';
+import { Task, TaskState } from '../types/task';
 import { getCookie } from '../utils/cookies';
 import { getNotificationStore } from './notificationStore';
 
@@ -12,24 +12,24 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   fetchTasks: async () => {
     set({ loading: true, error: null });
     const token = getCookie('authToken');
-    
+
     try {
-      const response = await fetch('https://localhost:7198/Task/GetListTasks', {
+      const response = await fetch('https://localhost:7198/Task/GetListTask', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         }
       });
-    
+
       const data = await response.json();
-    
+
       if (data.erro) {
         throw new Error(data.mensagem || 'Failed to fetch tasks');
       }
-    
-      set({ tasks: data.objeto, loading: false });
-    
+
+      set({ tasks: data.objeto || [], loading: false });
+
     } catch (error) {
       let errorMessage = 'Failed to fetch tasks';
       if (error instanceof Error) {
@@ -39,7 +39,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       getNotificationStore().showError(errorMessage);
     }
   },
-  
+
   getTask: (id: number) => {
     return get().tasks.find(task => task.taskId === id);
   },
@@ -49,12 +49,24 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     const token = getCookie('authToken');
 
     try {
-      const newTask = {
-        ...taskData,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      // Preparar dados para envio, removendo campos undefined/null
+      const newTask: any = {
+        title: taskData.title,
+        description: taskData.description,
+        dueDate: taskData.dueDate,
+        priority: taskData.priority,
+        status: taskData.status
       };
+
+      // Só incluir assigneeId se existir e for > 0
+      if (taskData.assigneeId && taskData.assigneeId > 0) {
+        newTask.assigneeId = taskData.assigneeId;
+      }
+
+      // Só incluir parentTaskId se existir e for > 0
+      if (taskData.parentTaskId && taskData.parentTaskId > 0) {
+        newTask.parentTaskId = taskData.parentTaskId;
+      }
 
       const response = await fetch('https://localhost:7198/Task/AddTask', {
         method: 'POST',
@@ -62,7 +74,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ ...newTask })
+        body: JSON.stringify(newTask)
       });
 
       const data = await response.json();
@@ -71,6 +83,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         throw new Error(data.mensagem || 'Failed to add task');
       }
 
+      // Atualiza o estado com a nova tarefa
       set(state => ({
         tasks: [...state.tasks, data.objeto],
         loading: false
@@ -94,12 +107,29 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   updateTask: async (id: number, taskData: Partial<Task>) => {
     set({ loading: true, error: null });
     const token = getCookie('authToken');
+    
     try {
-      const updateData = {
-        ...taskData,
-        taskId: id,
-        updatedAt: new Date().toISOString()
+      // Preparar dados para envio, removendo campos undefined/null
+      const updateData: any = {
+        taskId: id
       };
+
+      // Só incluir campos que foram fornecidos
+      if (taskData.title !== undefined) updateData.title = taskData.title;
+      if (taskData.description !== undefined) updateData.description = taskData.description;
+      if (taskData.dueDate !== undefined) updateData.dueDate = taskData.dueDate;
+      if (taskData.priority !== undefined) updateData.priority = taskData.priority;
+      if (taskData.status !== undefined) updateData.status = taskData.status;
+      
+      // Só incluir assigneeId se for > 0
+      if (taskData.assigneeId !== undefined && taskData.assigneeId !== undefined   &&  taskData.assigneeId > 0) {
+        updateData.assigneeId = taskData.assigneeId;
+      }
+      
+      // Só incluir parentTaskId se for > 0
+      if (taskData.parentTaskId !== undefined &&taskData.parentTaskId !== null &&  taskData.parentTaskId > 0) {
+        updateData.parentTaskId = taskData.parentTaskId;
+      }
       
       const response = await fetch('https://localhost:7198/Task/UpdateTask', {
         method: 'PUT',
@@ -107,7 +137,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ ...updateData })
+        body: JSON.stringify(updateData)
       });
 
       const data = await response.json();
@@ -118,12 +148,13 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       
       set(state => ({
         tasks: state.tasks.map(task =>
-          task.taskId === id ? { ...task, ...taskData } : task
+          task.taskId === id ? { ...task, ...data.objeto } : task
         ),
         loading: false
       }));
       
       getNotificationStore().showNotification(data.mensagem || 'Task updated successfully', 'success');
+
     } catch (error) {
       let errorMessage = 'Failed to update task';
       if (error instanceof Error) {
@@ -134,12 +165,13 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       throw error;
     }
   },
-  
+
   toggleTaskStatus: async (id: number) => {
     set({ loading: true, error: null });
     const token = getCookie('authToken');
+    
     try {
-      const response = await fetch(`https://localhost:7198/Task/ToggleStatusTask/${id}`, {
+      const response = await fetch(`https://localhost:7198/Task/ToogleStatusTask/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -161,6 +193,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       }));
       
       getNotificationStore().showNotification(data.mensagem || 'Task status updated successfully', 'success');
+
     } catch (error) {
       let errorMessage = 'Failed to toggle task status';
       if (error instanceof Error) {
@@ -171,144 +204,14 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       throw error;
     }
   },
-  
+
   assignTask: async (taskId: number, userId: number) => {
-    set({ loading: true, error: null });
-    const token = getCookie('authToken');
-    
-    try {
-      const task = get().getTask(taskId);
-      if (!task) {
-        throw new Error('Task not found');
-      }
-      
-      const response = await fetch('https://localhost:7198/Task/AssignTask', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ taskId, assigneeId: userId })
-      });
-      
-      const data = await response.json();
-      
-      if (data.erro) {
-        throw new Error(data.mensagem || 'Failed to assign task');
-      }
-      
-      set(state => ({
-        tasks: state.tasks.map(t => 
-          t.taskId === taskId ? { ...t, assigneeId: userId } : t
-        ),
-        loading: false
-      }));
-      
-      getNotificationStore().showNotification(data.mensagem || 'Task assigned successfully', 'success');
-    } catch (error) {
-      let errorMessage = 'Failed to assign task';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      set({ error: errorMessage, loading: false });
-      getNotificationStore().showError(errorMessage);
-      throw error;
-    }
+    // Esta funcionalidade pode ser implementada através do updateTask
+    // passando apenas o assigneeId
+    await get().updateTask(taskId, { assigneeId: userId });
   },
-  
-  updateTaskStatus: async (taskId: number, status: TaskStatus) => {
-    set({ loading: true, error: null });
-    const token = getCookie('authToken');
-    
-    try {
-      const task = get().getTask(taskId);
-      if (!task) {
-        throw new Error('Task not found');
-      }
-      
-      const response = await fetch('https://localhost:7198/Task/UpdateTaskStatus', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ taskId, status })
-      });
-      
-      const data = await response.json();
-      
-      if (data.erro) {
-        throw new Error(data.mensagem || 'Failed to update task status');
-      }
-      
-      set(state => ({
-        tasks: state.tasks.map(t => 
-          t.taskId === taskId ? { ...t, status } : t
-        ),
-        loading: false
-      }));
-      
-      getNotificationStore().showNotification(data.mensagem || 'Task status updated successfully', 'success');
-    } catch (error) {
-      let errorMessage = 'Failed to update task status';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      set({ error: errorMessage, loading: false });
-      getNotificationStore().showError(errorMessage);
-      throw error;
-    }
-  },
-  
-  updateTaskPriority: async (taskId: number, priority: TaskPriority) => {
-    set({ loading: true, error: null });
-    const token = getCookie('authToken');
-    
-    try {
-      const task = get().getTask(taskId);
-      if (!task) {
-        throw new Error('Task not found');
-      }
-      
-      const response = await fetch('https://localhost:7198/Task/UpdateTaskPriority', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ taskId, priority })
-      });
-      
-      const data = await response.json();
-      
-      if (data.erro) {
-        throw new Error(data.mensagem || 'Failed to update task priority');
-      }
-      
-      set(state => ({
-        tasks: state.tasks.map(t => 
-          t.taskId === taskId ? { ...t, priority } : t
-        ),
-        loading: false
-      }));
-      
-      getNotificationStore().showNotification(data.mensagem || 'Task priority updated successfully', 'success');
-    } catch (error) {
-      let errorMessage = 'Failed to update task priority';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      set({ error: errorMessage, loading: false });
-      getNotificationStore().showError(errorMessage);
-      throw error;
-    }
-  },
-  
+
   getTasksByAssignee: (userId: number) => {
     return get().tasks.filter(task => task.assigneeId === userId);
-  },
-  
-  getTasksByGroup: (groupId: number) => {
-    return get().tasks.filter(task => task.groupId === groupId);
   }
 }));

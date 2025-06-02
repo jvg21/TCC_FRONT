@@ -1,32 +1,30 @@
-// src/config/task/Task.tsx
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { CheckSquare } from 'lucide-react';
 import { Task } from '../../types/task';
 import { useTaskStore } from '../../store/taskStore';
 import { useAuthStore } from '../../store/authStore';
-import { PageLayout } from '../../components/common/PageLayout';
+import { useLanguage } from '../../hooks/useLanguage';
+import { getTaskColumns } from './TaskColumns';
 import { SectionHeader } from '../../components/common/SectionHeader';
+import { PageLayout } from '../../components/common/PageLayout';
 import { SearchBar } from '../../components/common/SearchBar';
 import { DataTable } from '../../components/common/DataTable';
-import { ConfirmationModal } from '../../components/forms/ConfirmationModal';
 import { TaskForm } from './TaskForm';
 import { TaskViewer } from './TaskViewer';
 import { TaskAssignment } from './TaskAssignment';
-import { getTaskColumns } from './TaskColumns';
+import { ConfirmationModal } from '../../components/forms/ConfirmationModal';
 
 export const TaskManagement = () => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const { tasks, loading, error, fetchTasks, toggleTaskStatus } = useTaskStore();
   const { user: currentUser } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-  const [currentTask, setCurrentTask] = useState<Task | null>(null);
-  
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [viewingTask, setViewingTask] = useState<Task | null>(null);
+  const [assigningTask, setAssigningTask] = useState<Task | null>(null);
+  const [toggleTask, setToggleTask] = useState<Task | null>(null);
+
   // Check if current user is an employee (Profile 3)
   const isEmployee = currentUser?.profile === 3;
 
@@ -34,53 +32,26 @@ export const TaskManagement = () => {
     fetchTasks();
   }, [fetchTasks]);
 
-  const filteredTasks = tasks.filter(
-    task =>
-      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTasks = tasks.filter(task => 
+    task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    task.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleToggleStatus = async (task: Task) => {
+  const handleToggleActivation = async (task: Task) => {
     try {
       await toggleTaskStatus(task.taskId);
-      setIsStatusModalOpen(false);
-      setCurrentTask(null);
+      setToggleTask(null);
     } catch (error) {
-      console.error('Toggle status failed:', error);
+      console.error('Toggle activation failed:', error);
     }
   };
 
-  const openAddModal = () => {
-    setCurrentTask(null);
-    setIsAddModalOpen(true);
-  };
-
-  const openEditModal = (task: Task) => {
-    setCurrentTask(task);
-    setIsEditModalOpen(true);
-  };
-
-  const openViewModal = (task: Task) => {
-    setCurrentTask(task);
-    setIsViewModalOpen(true);
-  };
-
-  const openAssignModal = (task: Task) => {
-    setCurrentTask(task);
-    setIsAssignModalOpen(true);
-  };
-
-  const openStatusModal = (task: Task) => {
-    setCurrentTask(task);
-    setIsStatusModalOpen(true);
-  };
-
-  // Get columns configuration
+  // Get columns configuration seguindo o modelo de empresa
   const columns = getTaskColumns({
-    onEdit: openEditModal,
-    onToggle: openStatusModal,
-    onViewDetails: openViewModal,
-    onAssign: openAssignModal,
+    onEdit: setEditingTask,
+    onToggle: setToggleTask,
+    onViewDetails: setViewingTask,
+    onAssign: setAssigningTask,
     currentUserId: currentUser?.userId || 0,
     isEmployee
   });
@@ -92,7 +63,7 @@ export const TaskManagement = () => {
         icon={<CheckSquare className="h-8 w-8 text-blue-500" />}
         showAddButton={true}
         addButtonLabel={t('addTask')}
-        onAddClick={openAddModal}
+        onAddClick={() => setShowAddModal(true)}
       />
 
       <div className="mb-6">
@@ -115,57 +86,57 @@ export const TaskManagement = () => {
       />
 
       {/* Add Task Modal */}
-      {isAddModalOpen && (
+      {showAddModal && (
         <TaskForm
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
+          onClose={() => setShowAddModal(false)}
+          isOpen={showAddModal}
         />
       )}
 
       {/* Edit Task Modal */}
-      {isEditModalOpen && currentTask && (
+      {editingTask && (
         <TaskForm
-          task={currentTask}
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+          isOpen={!!editingTask}
         />
       )}
 
       {/* View Task Modal */}
-      {isViewModalOpen && currentTask && (
+      {viewingTask && (
         <TaskViewer
-          task={currentTask}
-          isOpen={isViewModalOpen}
-          onClose={() => setIsViewModalOpen(false)}
+          task={viewingTask}
+          isOpen={!!viewingTask}
+          onClose={() => setViewingTask(null)}
           onEdit={() => {
-            setIsViewModalOpen(false);
-            openEditModal(currentTask);
+            setViewingTask(null);
+            setEditingTask(viewingTask);
           }}
         />
       )}
 
       {/* Assign Task Modal */}
-      {isAssignModalOpen && currentTask && (
+      {assigningTask && (
         <TaskAssignment
-          task={currentTask}
-          isOpen={isAssignModalOpen}
-          onClose={() => setIsAssignModalOpen(false)}
+          task={assigningTask}
+          isOpen={!!assigningTask}
+          onClose={() => setAssigningTask(null)}
         />
       )}
 
-      {/* Toggle Status Confirmation Modal */}
-      {isStatusModalOpen && currentTask && (
+      {/* Toggle Activation Modal */}
+      {toggleTask && (
         <ConfirmationModal
-          isOpen={isStatusModalOpen}
-          onClose={() => setIsStatusModalOpen(false)}
-          onConfirm={() => handleToggleStatus(currentTask)}
-          title={currentTask.isActive ? t('deactivateTask') : t('activateTask')}
-          message={currentTask.isActive 
-            ? t('deactivateTaskConfirmation', { title: currentTask.title }) 
-            : t('activateTaskConfirmation', { title: currentTask.title })}
-          confirmLabel={currentTask.isActive ? t('deactivate') : t('activate')}
+          isOpen={!!toggleTask}
+          onClose={() => setToggleTask(null)}
+          onConfirm={() => handleToggleActivation(toggleTask)}
+          title={toggleTask.isActive ? t('confirmDeactivation') : t('confirmActivation')}
+          message={toggleTask.isActive 
+            ? t('deactivateTaskConfirmation', { title: toggleTask.title }) 
+            : t('activateTaskConfirmation', { title: toggleTask.title })}
+          confirmLabel={toggleTask.isActive ? t('deactivate') : t('activate')}
           cancelLabel={t('cancel')}
-          variant={currentTask.isActive ? 'danger' : 'success'}
+          variant={toggleTask.isActive ? 'danger' : 'success'}
         />
       )}
     </PageLayout>

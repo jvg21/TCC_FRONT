@@ -1,10 +1,9 @@
-// src/config/task/TaskViewer.tsx
+// src/config/task/TaskViewer.tsx - Atualizado
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateString } from '../../utils/formatDateString';
 import { Task, TaskStatus, TaskPriority } from '../../types/task';
 import { useUserStore } from '../../store/userStore';
-import { useGroupStore } from '../../store/groupStore';
 import { useTaskStore } from '../../store/taskStore';
 import { Modal } from '../../components/forms/Modal';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -12,10 +11,10 @@ import {
   Calendar, 
   Clock, 
   User, 
-  Users, 
   CheckCircle, 
   AlertTriangle, 
-  AlertCircle
+  AlertCircle,
+  Edit
 } from 'lucide-react';
 
 interface TaskViewerProps {
@@ -28,17 +27,16 @@ interface TaskViewerProps {
 export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) => {
   const { t } = useTranslation();
   const { users } = useUserStore();
-  const { groups } = useGroupStore();
-  const { updateTaskStatus, updateTaskPriority } = useTaskStore();
+  const { updateTask } = useTaskStore();
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Obter informações relacionadas
   const assignee = users.find(user => user.userId === task.assigneeId);
-  const group = groups.find(group => group.groupId === task.groupId);
   const creator = users.find(user => user.userId === task.userId);
+  const parentTask = task.parentTaskId ? null : null; // Buscar tarefa pai se necessário
 
   // Status e prioridade
-  const getStatusInfo = (status: TaskStatus) => {
+  const getStatusInfo = (status: number) => {
     switch (status) {
       case TaskStatus.TODO:
         return { label: t('todo'), variant: 'default', icon: <Clock className="h-5 w-5 text-gray-500" /> };
@@ -55,7 +53,7 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
     }
   };
 
-  const getPriorityInfo = (priority: TaskPriority) => {
+  const getPriorityInfo = (priority: number) => {
     switch (priority) {
       case TaskPriority.LOW:
         return { label: t('low'), variant: 'default' };
@@ -74,12 +72,12 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
   const priorityInfo = getPriorityInfo(task.priority);
 
   // Manipuladores para atualização de status
-  const handleStatusChange = async (newStatus: TaskStatus) => {
+  const handleStatusChange = async (newStatus: number) => {
     if (task.status === newStatus) return;
     
     try {
       setIsUpdating(true);
-      await updateTaskStatus(task.taskId, newStatus);
+      await updateTask(task.taskId, { status: newStatus });
     } catch (error) {
       console.error('Failed to update status:', error);
     } finally {
@@ -88,12 +86,12 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
   };
 
   // Manipuladores para atualização de prioridade
-  const handlePriorityChange = async (newPriority: TaskPriority) => {
+  const handlePriorityChange = async (newPriority: number) => {
     if (task.priority === newPriority) return;
     
     try {
       setIsUpdating(true);
-      await updateTaskPriority(task.taskId, newPriority);
+      await updateTask(task.taskId, { priority: newPriority });
     } catch (error) {
       console.error('Failed to update priority:', error);
     } finally {
@@ -177,12 +175,14 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{t('assignee')}</span>
-                <span className="text-gray-700 dark:text-gray-300">{assignee?.name || '-'}</span>
+                <span className="text-gray-700 dark:text-gray-300">{assignee?.name || t('unassigned')}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-gray-400">{t('group')}</span>
-                <span className="text-gray-700 dark:text-gray-300">{group?.name || '-'}</span>
-              </div>
+              {task.parentTaskId && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">{t('parentTask')}</span>
+                  <span className="text-gray-700 dark:text-gray-300">ID: {task.parentTaskId}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -204,7 +204,7 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
                 .map(status => (
                   <button
                     key={status}
-                    onClick={() => handleStatusChange(status as TaskStatus)}
+                    onClick={() => handleStatusChange(status as number)}
                     disabled={isUpdating || task.status === status}
                     className={`px-3 py-1 rounded-md text-sm ${
                       task.status === status
@@ -212,7 +212,7 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
-                    {getStatusInfo(status as TaskStatus).label}
+                    {getStatusInfo(status as number).label}
                   </button>
                 ))}
             </div>
@@ -229,7 +229,7 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
                 .map(priority => (
                   <button
                     key={priority}
-                    onClick={() => handlePriorityChange(priority as TaskPriority)}
+                    onClick={() => handlePriorityChange(priority as number)}
                     disabled={isUpdating || task.priority === priority}
                     className={`px-3 py-1 rounded-md text-sm ${
                       task.priority === priority
@@ -237,7 +237,7 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
-                    {getPriorityInfo(priority as TaskPriority).label}
+                    {getPriorityInfo(priority as number).label}
                   </button>
                 ))}
             </div>
@@ -254,8 +254,9 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
           </button>
           <button
             onClick={onEdit}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
           >
+            <Edit className="h-4 w-4 mr-1" />
             {t('edit')}
           </button>
         </div>
