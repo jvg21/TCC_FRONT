@@ -17,15 +17,16 @@ import { GroupManagement } from './config/group/Group';
 import { CompaniesManagement } from './config/company/Companies';
 import { DocumentManagement } from './config/document/Document';
 import { DocumentWorkspace } from './config/document/DocumentWorkspace';
-import { TaskManagement } from './config/task/Task'; 
+import { TaskManagement } from './config/task/Task';
 import { TaskDashboard } from './config/task/TaskDashboard';
+import { DocumentVersions } from './config/document/DocumentVersions';
 
 // Inicialização do tema no carregamento da aplicação
 const initTheme = () => {
   const savedTheme = localStorage.getItem('theme');
-  
-  if (savedTheme === 'dark' || 
-      (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+
+  if (savedTheme === 'dark' ||
+    (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.documentElement.classList.add('dark');
   } else {
     document.documentElement.classList.remove('dark');
@@ -63,7 +64,7 @@ function App() {
             path='/companies/user'
             element={
               <PrivateRoute>
-                <UserManagement/>
+                <UserManagement />
               </PrivateRoute>
             }
           />
@@ -115,6 +116,14 @@ function App() {
             }
           />
           <Route
+            path='/documents/:documentId/versions'
+            element={
+              <PrivateRoute>
+                <DocumentVersions />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path='/tasks/dashboard'
             element={
               <PrivateRoute>
@@ -122,9 +131,9 @@ function App() {
               </PrivateRoute>
             }
           />
-          
+
           <Route path="/" element={<Navigate to="/login" />} />
-          
+
           {/* Rota para 404 - NotFound */}
           <Route path="*" element={<NotFound />} />
         </Routes>

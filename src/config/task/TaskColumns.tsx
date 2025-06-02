@@ -1,11 +1,11 @@
-// src/config/task/TaskColumns.tsx
+// src/config/task/TaskColumns.tsx - Atualizado
 import { Column } from '../../components/common/DataTable';
 import { Task, TaskStatus, TaskPriority } from '../../types/task';
 import { ActionButtons } from '../../components/common/ActionButtons';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useLanguage } from '../../hooks/useLanguage';
 import { formatDateString } from '../../utils/formatDateString';
-import { User } from 'lucide-react';
+import { Eye, User } from 'lucide-react';
 
 interface GetColumnsProps {
   onEdit: (task: Task) => void;
@@ -26,7 +26,7 @@ export const getTaskColumns = ({
 }: GetColumnsProps): Column<Task>[] => {
   const { t } = useLanguage();
 
-  const getStatusBadge = (status: TaskStatus) => {
+  const getStatusBadge = (status: number) => {
     switch (status) {
       case TaskStatus.TODO:
         return <StatusBadge label={t('todo')} variant="default" />;
@@ -43,7 +43,7 @@ export const getTaskColumns = ({
     }
   };
   
-  const getPriorityBadge = (priority: TaskPriority) => {
+  const getPriorityBadge = (priority: number) => {
     switch (priority) {
       case TaskPriority.LOW:
         return <StatusBadge label={t('low')} variant="default" />;
@@ -83,6 +83,10 @@ export const getTaskColumns = ({
             <div className="text-sm text-gray-500 dark:text-gray-300">
               {task.assignee.name}
             </div>
+          ) : task.assigneeId ? (
+            <div className="text-sm text-gray-500 dark:text-gray-300">
+              {t('assigned')} (ID: {task.assigneeId})
+            </div>
           ) : (
             <button
               onClick={(e) => {
@@ -108,6 +112,14 @@ export const getTaskColumns = ({
       )
     },
     {
+      header: t('createdAt'),
+      accessor: (task) => (
+        <div className="text-sm text-gray-500 dark:text-gray-300">
+          {formatDateString(task.createdAt)}
+        </div>
+      )
+    },
+    {
       header: t('active'),
       accessor: (task) => (
         <StatusBadge
@@ -118,7 +130,7 @@ export const getTaskColumns = ({
     }
   ];
 
-  // Adicionar coluna de ações (se não for funcionário ou se for o criador da tarefa)
+  // Adicionar coluna de ações
   baseColumns.push({
     header: t('actions'),
     accessor: (task) => {
@@ -132,20 +144,19 @@ export const getTaskColumns = ({
             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
             title={t('viewDetails')}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
+            <Eye className="h-5 w-5" />
           </button>
           
-          <ActionButtons
-            onEdit={canModify ? () => onEdit(task) : undefined}
-            onToggle={canModify ? () => onToggle(task) : undefined}
-            isActive={task.isActive}
-            showToggle={canModify}
-            showDelete={false}
-            editTooltip={t('editTask')}
-          />
+          {canModify && (
+            <ActionButtons
+              onEdit={() => onEdit(task)}
+              onToggle={() => onToggle(task)}
+              isActive={task.isActive}
+              showToggle={true}
+              showDelete={false}
+              editTooltip={t('editTask')}
+            />
+          )}
         </div>
       );
     },

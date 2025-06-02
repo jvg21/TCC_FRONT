@@ -1,4 +1,4 @@
-// src/config/task/TaskAssignment.tsx
+// src/config/task/TaskAssignment.tsx - Atualizado
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Task } from '../../types/task';

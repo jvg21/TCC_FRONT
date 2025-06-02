@@ -1,21 +1,32 @@
-// src/types/task.ts
+// src/types/task.ts - Atualizado para o backend
 import { User } from "./user";
 
 export interface Task {
   taskId: number;
   title: string;
   description: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate?: string;
   createdAt: string;
   updatedAt: string;
-  userId: number; // Criador da tarefa
-  assigneeId?: number; // Usuário designado para a tarefa
-  groupId?: number; // Grupo associado à tarefa (opcional)
+  dueDate: string;
+  priority: number; // 1-4 conforme backend
+  status: number; // 1-5 conforme backend
+  assigneeId: number; // Assinalado para
+  userId: number; // Criado por
+  parentTaskId?: number | null; // Opcional
   isActive: boolean;
-  user?: User; // Usuário que criou a tarefa (opcional, para exibição)
-  assignee?: User; // Usuário designado (opcional, para exibição)
+  
+  // Relacionamentos opcionais para exibição
+  user?: User; // Criador da tarefa
+  assignee?: User; // Usuário designado
+  parentTask?: Task; // Tarefa pai
+}
+
+// Enums para prioridade e status
+export enum TaskPriority {
+  LOW = 1,
+  MEDIUM = 2,
+  HIGH = 3,
+  URGENT = 4
 }
 
 export enum TaskStatus {
@@ -24,13 +35,6 @@ export enum TaskStatus {
   REVIEW = 3,
   DONE = 4,
   ARCHIVED = 5
-}
-
-export enum TaskPriority {
-  LOW = 1,
-  MEDIUM = 2,
-  HIGH = 3,
-  URGENT = 4
 }
 
 export interface TaskState {
@@ -47,8 +51,5 @@ export interface TaskState {
   
   // Ações adicionais
   assignTask: (taskId: number, userId: number) => Promise<void>;
-  updateTaskStatus: (taskId: number, status: TaskStatus) => Promise<void>;
-  updateTaskPriority: (taskId: number, priority: TaskPriority) => Promise<void>;
   getTasksByAssignee: (userId: number) => Task[];
-  getTasksByGroup: (groupId: number) => Task[];
 }
