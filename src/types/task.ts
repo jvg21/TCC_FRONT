@@ -9,7 +9,7 @@ export interface Task {
   updatedAt: string;
   dueDate: string;
   priority: number; // 1-4 conforme backend
-  status: number; // 1-5 conforme backend
+  status: number; // 1-4 conforme backend (sem ARCHIVED)
   assigneeId: number; // Assinalado para
   userId: number; // Criado por
   parentTaskId?: number | null; // Opcional
@@ -33,8 +33,8 @@ export enum TaskStatus {
   TODO = 1,
   IN_PROGRESS = 2,
   REVIEW = 3,
-  DONE = 4,
-  ARCHIVED = 5
+  DONE = 4
+  // ARCHIVED = 5 removido - não existe no backend
 }
 
 export interface TaskState {

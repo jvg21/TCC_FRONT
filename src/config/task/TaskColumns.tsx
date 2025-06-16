@@ -6,6 +6,7 @@ import { StatusBadge } from '../../components/common/StatusBadge';
 import { useLanguage } from '../../hooks/useLanguage';
 import { formatDateString } from '../../utils/formatDateString';
 import { Eye, User } from 'lucide-react';
+import { useUserStore } from '../../store/userStore';
 
 interface GetColumnsProps {
   onEdit: (task: Task) => void;
@@ -25,6 +26,7 @@ export const getTaskColumns = ({
   isEmployee
 }: GetColumnsProps): Column<Task>[] => {
   const { t } = useLanguage();
+  const { users } = useUserStore();
 
   const getStatusBadge = (status: number) => {
     switch (status) {
@@ -42,7 +44,7 @@ export const getTaskColumns = ({
         return <StatusBadge label={t('unknown')} variant="default" />;
     }
   };
-  
+
   const getPriorityBadge = (priority: number) => {
     switch (priority) {
       case TaskPriority.LOW:
@@ -84,8 +86,9 @@ export const getTaskColumns = ({
               {task.assignee.name}
             </div>
           ) : task.assigneeId ? (
+            // Se tem assigneeId mas não tem o objeto user, buscar pelo ID
             <div className="text-sm text-gray-500 dark:text-gray-300">
-              {t('assigned')} (ID: {task.assigneeId})
+              {users.find(u => u.userId === task.assigneeId)?.name || `ID: ${task.assigneeId}`}
             </div>
           ) : (
             <button
@@ -136,7 +139,7 @@ export const getTaskColumns = ({
     accessor: (task) => {
       // Usuário só pode editar/ativar/desativar tarefas que ele criou, a menos que seja administrador ou gerente
       const canModify = task.userId === currentUserId || !isEmployee;
-      
+
       return (
         <div className="flex space-x-2">
           <button
@@ -146,7 +149,7 @@ export const getTaskColumns = ({
           >
             <Eye className="h-5 w-5" />
           </button>
-          
+
           {canModify && (
             <ActionButtons
               onEdit={() => onEdit(task)}
@@ -162,6 +165,6 @@ export const getTaskColumns = ({
     },
     className: 'text-right'
   });
-  
+
   return baseColumns;
 };

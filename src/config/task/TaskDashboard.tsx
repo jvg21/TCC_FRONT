@@ -1,4 +1,4 @@
-// src/components/pages/TaskDashboard.tsx
+// src/config/task/TaskDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -25,6 +25,7 @@ export const TaskDashboard = () => {
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   useEffect(() => {
@@ -80,14 +81,18 @@ export const TaskDashboard = () => {
                 : task.priority === 3 
                 ? 'bg-orange-500' 
                 : task.priority === 2 
-                ? 'bg-blue-500' 
-                : 'bg-gray-500'
+                ? 'bg-yellow-500' 
+                : 'bg-green-500'
             }`}
           />
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-          {task.description}
-        </p>
+        
+        {task.description && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+            {task.description}
+          </p>
+        )}
+        
         {task.dueDate && (
           <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
             <Clock className="h-3 w-3 mr-1" />
@@ -98,26 +103,33 @@ export const TaskDashboard = () => {
     );
   };
 
-  const renderTaskList = (tasks: Task[], icon: React.ReactNode, title: string, emptyMessage: string) => (
-    <div>
-      <div className="flex items-center mb-3">
-        {icon}
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-2">
-          {title} ({tasks.length})
-        </h3>
-      </div>
-      
-      <div className="space-y-2">
-        {tasks.length > 0 ? (
-          tasks.map(task => renderTaskItem(task))
-        ) : (
-          <div className="text-center p-4 text-sm text-gray-500 dark:text-gray-400 italic">
-            {emptyMessage}
+  const renderTaskList = (tasks: Task[], icon: React.ReactNode, title: string, emptyMessage: string) => {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center">
+            {icon}
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white ml-2">
+              {title}
+            </h3>
           </div>
-        )}
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1">
+            {tasks.length}
+          </span>
+        </div>
+        
+        <div className="max-h-80 overflow-y-auto">
+          {tasks.length > 0 ? (
+            tasks.map(task => renderTaskItem(task))
+          ) : (
+            <div className="text-center p-4 text-sm text-gray-500 dark:text-gray-400 italic">
+              {emptyMessage}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <PageLayout>
@@ -197,7 +209,6 @@ export const TaskDashboard = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
             </div>
           ) : (
-            // Mostrar tarefas com prazo próximo (ordenadas por data de vencimento)
             <div>
               {myTasks
                 .filter(task => task.dueDate && new Date(task.dueDate) > new Date() && task.status !== TaskStatus.DONE)
@@ -300,9 +311,19 @@ export const TaskDashboard = () => {
           onClose={() => setIsViewModalOpen(false)}
           onEdit={() => {
             setIsViewModalOpen(false);
-            // Abrir modal de edição
             setSelectedTask(selectedTask);
-            setIsAddModalOpen(true);
+            setIsEditModalOpen(true);
+          }}
+        />
+      )}
+
+      {isEditModalOpen && selectedTask && (
+        <TaskForm
+          task={selectedTask}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedTask(null);
           }}
         />
       )}

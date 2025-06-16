@@ -48,47 +48,53 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
         description: task.description || '',
         status: task.status || TaskStatus.TODO,
         priority: task.priority || TaskPriority.MEDIUM,
-        dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+        dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
         assigneeId: task.assigneeId || 0,
         parentTaskId: task.parentTaskId || 0,
-        userId: task.userId
+        userId: task.userId || currentUser?.userId || 0
+      });
+    } else {
+      // Reset form for new task
+      setFormData({
+        title: '',
+        description: '',
+        status: TaskStatus.TODO,
+        priority: TaskPriority.MEDIUM,
+        dueDate: '',
+        assigneeId: 0,
+        parentTaskId: 0,
+        userId: currentUser?.userId || 0
       });
     }
-  }, [task]);
+    setErrors({});
+  }, [task, currentUser, isOpen]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'status' || name === 'priority' || name === 'assigneeId' || name === 'parentTaskId' || name === 'userId'
+        ? parseInt(value) || 0
+        : value
+    }));
     
-    // Converte valores numéricos quando necessário
-    let processedValue: any = value;
-    if (name === 'status' || name === 'priority' || name === 'assigneeId' || name === 'parentTaskId') {
-      processedValue = parseInt(value) || 0;
-    }
-    
-    setFormData({
-      ...formData,
-      [name]: processedValue
-    });
-    
-    // Limpa erros quando o campo é editado
+    // Clear error when user starts typing
     if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  const validate = () => {
+  const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.title.trim()) {
       newErrors.title = t('titleRequired');
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = t('descriptionRequired');
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -96,19 +102,18 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validate()) {
+    if (!validateForm()) {
       return;
     }
+
+    setLoading(true);
     
     try {
-      setLoading(true);
-      
-      // Preparar os dados da tarefa - CORRIGIDO
-      const taskData = {
+      const taskData: any = {
         title: formData.title,
         description: formData.description,
-        status: formData.status,
         priority: formData.priority,
+        status: formData.status,
         dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : '',
         ...(formData.assigneeId !== 0 && { assigneeId: formData.assigneeId }),
         ...(formData.parentTaskId !== 0 && { parentTaskId: formData.parentTaskId }),
@@ -134,8 +139,7 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
     { value: TaskStatus.TODO.toString(), label: t('todo') },
     { value: TaskStatus.IN_PROGRESS.toString(), label: t('inProgress') },
     { value: TaskStatus.REVIEW.toString(), label: t('inReview') },
-    { value: TaskStatus.DONE.toString(), label: t('done') },
-    { value: TaskStatus.ARCHIVED.toString(), label: t('archived') }
+    { value: TaskStatus.DONE.toString(), label: t('done') }
   ];
   
   const priorityOptions = [
@@ -215,8 +219,8 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
             <FormInput
               id="dueDate"
               name="dueDate"
-              label={t('dueDate')}
               type="date"
+              label={t('dueDate')}
               value={formData.dueDate}
               onChange={handleChange}
               error={errors.dueDate}
@@ -234,7 +238,7 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
           </div>
         </div>
         
-        <div className="mt-6 flex justify-end space-x-3">
+        <div className="flex justify-end space-x-3 mt-6">
           <button
             type="button"
             onClick={onClose}
@@ -245,16 +249,10 @@ export const TaskForm = ({ task, isOpen, onClose }: TaskFormProps) => {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
             disabled={loading}
           >
-            {loading && (
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            )}
-            {isEditing ? t('update') : t('create')}
+            {loading ? t('saving') : isEditing ? t('update') : t('create')}
           </button>
         </div>
       </form>
