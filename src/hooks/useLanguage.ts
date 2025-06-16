@@ -1,4 +1,4 @@
-// src/hooks/useLanguage.ts
+// src/hooks/useLanguage.ts - Atualizado para incluir espanhol seguindo padrões do projeto
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect } from 'react';
 
@@ -13,6 +13,9 @@ export const useLanguage = () => {
   
   // Detect if current language is Portuguese
   const isPortuguese = currentLanguage === 'pt' || currentLanguage.startsWith('pt-');
+  
+  // Detect if current language is Spanish
+  const isSpanish = currentLanguage === 'es' || currentLanguage.startsWith('es-');
 
   // Change language function
   const changeLanguage = useCallback((lang: string) => {
@@ -20,11 +23,30 @@ export const useLanguage = () => {
     localStorage.setItem('i18nextLng', lang);
   }, [i18n]);
 
-  // Toggle between English and Portuguese
+  // Toggle between languages (English -> Portuguese -> Spanish -> English)
   const toggleLanguage = useCallback(() => {
-    const newLang = isEnglish ? 'pt' : 'en';
+    let newLang = 'en';
+    if (isEnglish) {
+      newLang = 'pt';
+    } else if (isPortuguese) {
+      newLang = 'es';
+    } else if (isSpanish) {
+      newLang = 'en';
+    }
     changeLanguage(newLang);
-  }, [isEnglish, changeLanguage]);
+  }, [isEnglish, isPortuguese, isSpanish, changeLanguage]);
+
+  // Get available languages
+  const availableLanguages = [
+    { code: 'en', name: 'English', nativeName: 'English' },
+    { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
+    { code: 'es', name: 'Spanish', nativeName: 'Español' }
+  ];
+
+  // Get current language info
+  const getCurrentLanguageInfo = () => {
+    return availableLanguages.find(lang => lang.code === currentLanguage) || availableLanguages[0];
+  };
 
   // Ensure language is loaded from localStorage on initial render
   useEffect(() => {
@@ -38,8 +60,11 @@ export const useLanguage = () => {
     currentLanguage,
     isEnglish,
     isPortuguese,
+    isSpanish,
     changeLanguage,
     toggleLanguage,
+    availableLanguages,
+    getCurrentLanguageInfo,
     t
   };
 };

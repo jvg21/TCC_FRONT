@@ -7,6 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuthStore } from '../../store/authStore';
 import { useTheme } from '../../hooks/useTheme';
+import Logo from '../../assets/image/logo.png';
 
 export const NavBar = () => {
     const { logout, user } = useAuthStore();
@@ -48,19 +49,20 @@ export const NavBar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
                     <div className="flex items-center">
-                        <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/dashboard')}>
-                            <LayoutDashboard className="h-8 w-8 text-blue-500" />
+                        <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/home')}>
+                            {/* <LayoutDashboard className="h-8 w-8 text-blue-500" /> */}
+                            <img src={Logo} className="h-10 w-10" alt="Logo" />
                         </div>
                         
                         {/* Desktop Navigation Links */}
                         <div className="hidden md:block ml-10">
                             <div className="flex items-center space-x-4">
-                                <Link 
+                                {/* <Link 
                                     to="/dashboard" 
                                     className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
                                 >
                                     {t('dashboard')}
-                                </Link>
+                                </Link> */}
                                 
                                 {/* Only show Companies link for admins */}
                                 {user?.profile === 1 && (

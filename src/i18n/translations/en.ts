@@ -1,5 +1,3 @@
-// src/i18n/translations/en.ts - English translations
-
 export const enTranslations = {
   // Authentication
   login: 'Login',
@@ -23,6 +21,26 @@ export const enTranslations = {
   options: 'Options',
   close: 'Close',
   back: 'Back',
+  cancel: 'Cancel',
+  save: 'Save',
+  edit: 'Edit',
+  view: 'View',
+  delete: 'Delete',
+  update: 'Update',
+  create: 'Create',
+  add: 'Add',
+  remove: 'Remove',
+  search: 'Search',
+  filter: 'Filter',
+  filters: 'Filters',
+  actions: 'Actions',
+  status: 'Status',
+  active: 'Active',
+  inactive: 'Inactive',
+  error: 'Error',
+  success: 'Success',
+  warning: 'Warning',
+  info: 'Information',
   
   // Employee Management
   employeeManagement: 'Employee Management',
@@ -31,12 +49,9 @@ export const enTranslations = {
   deleteEmployee: 'Delete Employee',
   searchEmployees: 'Search employees...',
   confirmDelete: 'Are you sure you want to delete this?',
-  cancel: 'Cancel',
-  save: 'Save',
   department: 'Department',
   position: 'Position',
   hireDate: 'Hire Date',
-  actions: 'Actions',
   selectDepartment: 'Select department',
   sectorManagement: 'Sector Management',
   
@@ -52,15 +67,9 @@ export const enTranslations = {
   isActive: 'Active',
   createdAt: 'Created At',
   updatedAt: 'Updated At',
-  status: 'Status',
-  active: 'Active',
-  inactive: 'Inactive',
   contact: 'Contact',
   noCompaniesFound: 'No companies found matching your search',
   noCompaniesYet: 'No companies added yet',
-  delete: 'Delete',
-  update: 'Update',
-  create: 'Create',
   
   // Validation
   nameRequired: 'Name is required',
@@ -77,9 +86,13 @@ export const enTranslations = {
   
   // Document Management
   documents: 'Documents',
+  documentManagement: 'Document Management',
+  documentWorkspace: 'Document Workspace',
+  documentEditor: 'Document Editor',
   addDocument: 'Add Document',
   editDocument: 'Edit Document',
-  documentWorkspace: 'Document Workspace',
+  createDocument: 'Create Document',
+  deleteDocument: 'Delete Document',
   searchDocuments: 'Search documents...',
   noDocumentsFound: 'No documents found matching your search',
   noDocumentsYet: 'No documents added yet',
@@ -88,11 +101,75 @@ export const enTranslations = {
   folder: 'Folder',
   content: 'Content',
   
-  // Task Management - Novos textos adicionados
+  // Document Editor specific translations
+  typeMarkdownHere: 'Type your markdown here...',
+  bold: 'Bold',
+  italic: 'Italic',
+  strikethrough: 'Strikethrough',
+  code: 'Code',
+  link: 'Link',
+  image: 'Image',
+  list: 'List',
+  numberedList: 'Numbered List',
+  checkbox: 'Checkbox',
+  quote: 'Quote',
+  tag: 'Tag',
+  font: 'Font',
+  color: 'Color',
+  header1: 'Header 1',
+  header2: 'Header 2',
+  header3: 'Header 3',
+  splitView: 'Split View',
+  togglePreview: 'Toggle Preview',
+  download: 'Download',
+  copy: 'Copy',
+  markdown: 'Markdown',
+  html: 'HTML',
+  text: 'Text',
+  
+  // Tooltips for markdown editor
+  boldTooltip: 'Bold (Ctrl+B)',
+  italicTooltip: 'Italic (Ctrl+I)',
+  strikethroughTooltip: 'Strikethrough',
+  codeTooltip: 'Inline Code',
+  linkTooltip: 'Link (Ctrl+K)',
+  imageTooltip: 'Image',
+  listTooltip: 'List',
+  numberedListTooltip: 'Numbered List',
+  checkboxTooltip: 'Checkbox',
+  quoteTooltip: 'Quote',
+  tagTooltip: 'Tag',
+  fontTooltip: 'Font',
+  colorTooltip: 'Text Color',
+  header1Tooltip: 'Header H1',
+  header2Tooltip: 'Header H2',
+  header3Tooltip: 'Header H3',
+  splitViewTooltip: 'Split View',
+  togglePreviewTooltip: 'Toggle Preview',
+  downloadTooltip: 'Download',
+  copyTooltip: 'Copy',
+  
+  // Placeholder texts for markdown editor
+  boldText: 'bold text',
+  italicText: 'italic text',
+  strikethroughText: 'strikethrough text',
+  codeText: 'code',
+  linkText: 'link text',
+  imageAlt: 'alt',
+  imageUrl: 'image-url',
+  listItem: 'list item',
+  numberedItem: 'numbered item',
+  task: 'task',
+  citation: 'citation',
+  
+  // Task Management
   tasks: 'Tasks',
   taskDashboard: 'Task Dashboard',
+  taskBoard: 'Task Board',
   addTask: 'Add Task',
   editTask: 'Edit Task',
+  createTask: 'Create Task',
+  deleteTask: 'Delete Task',
   taskManagement: 'Task Management',
   searchTasks: 'Search tasks...',
   noTasksFound: 'No tasks found matching your search',
@@ -197,9 +274,114 @@ export const enTranslations = {
   // Specific task translations
   assign: 'Assign',
   
+  // Navigation
+  home: 'Home',
+  profile: 'Profile',
+  account: 'Account',
+  
+  // Form validation and messages
+  required: 'Required',
+  optional: 'Optional',
+  fieldRequired: 'This field is required',
+  invalidFormat: 'Invalid format',
+  saveSuccess: 'Saved successfully',
+  saveError: 'Error saving',
+  deleteSuccess: 'Deleted successfully',
+  deleteError: 'Error deleting',
+  updateSuccess: 'Updated successfully',
+  updateError: 'Error updating',
+  createSuccess: 'Created successfully',
+  createError: 'Error creating',
+  
+  // Document versions and history
+  versions: 'Versions',
+  versionHistory: 'Version History',
+  createVersion: 'Create Version',
+  compareVersions: 'Compare Versions',
+  restoreVersion: 'Restore Version',
+  versionComment: 'Version Comment',
+  noVersionComment: 'No comment',
+  currentVersion: 'Current Version',
+  
+  // File operations
+  upload: 'Upload',
+  downloadAs: 'Download as',
+  exportAs: 'Export as',
+  import: 'Import',
+  file: 'File',
+  files: 'Files',
+  
+  // Time and date
+  today: 'Today',
+  yesterday: 'Yesterday',
+  tomorrow: 'Tomorrow',
+  thisWeek: 'This Week',
+  lastWeek: 'Last Week',
+  thisMonth: 'This Month',
+  lastMonth: 'Last Month',
+  
   // Other
   pageNotFound: 'Page Not Found',
   pageNotFoundMessage: 'Sorry, the page you are looking for does not exist.',
   goHome: 'Go Home',
   goBack: 'Go Back',
+  
+  // Notifications and alerts
+  notification: 'Notification',
+  notifications: 'Notifications',
+  alert: 'Alert',
+  confirm: 'Confirm',
+  yes: 'Yes',
+  no: 'No',
+  ok: 'OK',
+  
+  // Workspace and layout
+  workspace: 'Workspace',
+  sidebar: 'Sidebar',
+  mainContent: 'Main Content',
+  fullscreen: 'Fullscreen',
+  exitFullscreen: 'Exit Fullscreen',
+  
+  // Editor states and actions
+  saved: 'Saved',
+  saving: 'Saving...',
+  unsavedChanges: 'Unsaved Changes',
+  autoSave: 'Auto Save',
+  manualSave: 'Manual Save',
+  lastSaved: 'Last saved',
+  
+  // Preview and display modes
+  preview: 'Preview',
+  readOnly: 'Read Only',
+  editMode: 'Edit Mode',
+  previewMode: 'Preview Mode',
+  
+  // Search and filtering
+  searchResults: 'Search Results',
+  noResults: 'No results found',
+  clearSearch: 'Clear Search',
+  filterBy: 'Filter by',
+  sortBy: 'Sort by',
+  
+  // Data and statistics
+  statistics: 'Statistics',
+  analytics: 'Analytics',
+  reports: 'Reports',
+  data: 'Data',
+  
+  // Communication
+  message: 'Message',
+  messages: 'Messages',
+  comment: 'Comment',
+  comments: 'Comments',
+  feedback: 'Feedback',
+  
+  // Project and organization
+  project: 'Project',
+  projects: 'Projects',
+  organization: 'Organization',
+  team: 'Team',
+  teams: 'Teams',
+  member: 'Member',
+  members: 'Members'
 };
