@@ -19,7 +19,7 @@ export const Login = () => {
     try {
       // Login will handle showing notifications
       await login(email, password);
-      navigate('/dashboard');
+      navigate('/home');
     } catch (error) {
       // Error notification is already shown by the login function
       console.error('Login failed:', error);

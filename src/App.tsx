@@ -1,10 +1,9 @@
-// Atualizando App.tsx para incluir as novas rotas
-
 // src/App.tsx
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import { Dashboard } from './components/pages/Dashboard';
+import { Home } from './components/pages/Home';
 import { useAuthStore } from './store/authStore';
 import './i18n';
 import { Login } from './components/pages/Login';
@@ -54,6 +53,17 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password" element={<ForgotPassword />} />
+          
+          {/* Página Inicial - Home */}
+          <Route
+            path="/home"
+            element={
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            }
+          />
+          
           <Route
             path="/dashboard"
             element={
@@ -85,7 +95,7 @@ function App() {
                 {user?.profile === 1 ? (
                   <CompaniesManagement />
                 ) : (
-                  <Navigate to="/dashboard" />
+                  <Navigate to="/home" />
                 )}
               </PrivateRoute>
             }
@@ -107,9 +117,8 @@ function App() {
               </PrivateRoute>
             }
           />
-            <Route path="/documents/edit/:id" element={<PrivateRoute><DocumentEditor /></PrivateRoute>} />
+          <Route path="/documents/edit/:id" element={<PrivateRoute><DocumentEditor /></PrivateRoute>} />
           <Route path="/documents/new" element={<PrivateRoute><DocumentEditor /></PrivateRoute>} />
-
 
           {/* Rotas para gerenciamento de tarefas */}
           <Route
@@ -146,7 +155,15 @@ function App() {
             }
           />
 
-          <Route path="/" element={<Navigate to="/login" />} />
+          {/* Redirecionar para home quando autenticado, senão para login */}
+          <Route 
+            path="/" 
+            element={
+              <PrivateRoute>
+                <Navigate to="/home" />
+              </PrivateRoute>
+            } 
+          />
 
           {/* Rota para 404 - NotFound */}
           <Route path="*" element={<NotFound />} />
