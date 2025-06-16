@@ -1,8 +1,8 @@
-// Atualizando o componente NavBar.tsx para incluir links para tarefas
+// Atualizando o componente NavBar.tsx para incluir links para o editor e kanban board
 
 // src/components/common/NavBar.tsx
 import { useState } from 'react';
-import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe, Users, Building, Grid, Menu, X, FileText, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, LogOut, User, ChevronDown, Settings, Moon, Sun, Globe, Users, Building, Grid, Menu, X, FileText, CheckSquare, Edit, Kanban } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuthStore } from '../../store/authStore';
@@ -86,35 +86,61 @@ export const NavBar = () => {
                                     {t('users')}
                                 </Link>
                                 
-                                {/* Link para documentos */}
-                                <Link 
-                                    to="/documents" 
-                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
-                                >
-                                    {t('documents')}
-                                </Link>
+                                {/* Document Links */}
+                                <div className="relative group">
+                                    <button className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200 flex items-center">
+                                        {t('documents')}
+                                        <ChevronDown className="h-4 w-4 ml-1" />
+                                    </button>
+                                    <div className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                        <Link 
+                                            to="/documents" 
+                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        >
+                                            {t('documentManagement')}
+                                        </Link>
+                                        <Link 
+                                            to="/documents/workspace" 
+                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        >
+                                            {t('documentWorkspace')}
+                                        </Link>
+                                        <Link 
+                                            to="/documents/editor" 
+                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        >
+                                            {t('documentEditor')}
+                                        </Link>
+                                    </div>
+                                </div>
                                 
-                                <Link 
-                                    to="/documents/workspace" 
-                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
-                                >
-                                    {t('documentWorkspace')}
-                                </Link>
-                                
-                                {/* Novos links para tarefas */}
-                                <Link 
-                                    to="/tasks" 
-                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
-                                >
-                                    {t('tasks')}
-                                </Link>
-                                
-                                <Link 
-                                    to="/tasks/dashboard" 
-                                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
-                                >
-                                    {t('taskDashboard')}
-                                </Link>
+                                {/* Task Links */}
+                                <div className="relative group">
+                                    <button className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200 flex items-center">
+                                        {t('tasks')}
+                                        <ChevronDown className="h-4 w-4 ml-1" />
+                                    </button>
+                                    <div className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                        <Link 
+                                            to="/tasks" 
+                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        >
+                                            {t('taskManagement')}
+                                        </Link>
+                                        <Link 
+                                            to="/tasks/board" 
+                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        >
+                                            {t('taskBoard')}
+                                        </Link>
+                                        <Link 
+                                            to="/tasks/dashboard" 
+                                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                        >
+                                            {t('taskDashboard')}
+                                        </Link>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -245,7 +271,7 @@ export const NavBar = () => {
                             {t('users')}
                         </button>
                         
-                        {/* Links móveis para documentos */}
+                        {/* Document Links Mobile */}
                         <button 
                             onClick={() => handleNavigate('/documents')}
                             className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
@@ -262,7 +288,15 @@ export const NavBar = () => {
                             {t('documentWorkspace')}
                         </button>
                         
-                        {/* Links móveis para tarefas */}
+                        <button 
+                            onClick={() => handleNavigate('/documents/editor')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <Edit className="h-5 w-5 inline-block mr-2" />
+                            {t('documentEditor')}
+                        </button>
+                        
+                        {/* Task Links Mobile */}
                         <button 
                             onClick={() => handleNavigate('/tasks')}
                             className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
@@ -272,10 +306,18 @@ export const NavBar = () => {
                         </button>
                         
                         <button 
+                            onClick={() => handleNavigate('/tasks/board')}
+                            className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        >
+                            <Grid className="h-5 w-5 inline-block mr-2" />
+                            {t('taskBoard')}
+                        </button>
+                        
+                        <button 
                             onClick={() => handleNavigate('/tasks/dashboard')}
                             className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
                         >
-                            <CheckSquare className="h-5 w-5 inline-block mr-2" />
+                            <LayoutDashboard className="h-5 w-5 inline-block mr-2" />
                             {t('taskDashboard')}
                         </button>
                     </div>

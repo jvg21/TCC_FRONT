@@ -1,13 +1,14 @@
-// src/config/document/DocumentForms.tsx - Versão atualizada
+// src/config/document/DocumentForms.tsx - Corrigido
 import { useState, useEffect } from 'react';
 import { useDocumentStore } from '../../store/documentStore';
 import { Document } from '../../types/document';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuthStore } from '../../store/authStore';
-import { FormInput, FormSelect, FormTextarea } from '../../components/forms/FormField';
+import { FormInput, FormSelect } from '../../components/forms/FormField';
 import { Modal } from '../../components/forms/Modal';
 import { FullScreenModal } from '../../components/forms/FullScreenModal';
-import { Save, X } from 'lucide-react';
+import { MarkdownEditor } from '../../components/editor/MarkdownEditor';
+import { Save, X, Maximize2 } from 'lucide-react';
 
 interface DocumentFormProps {
   document?: Document;
@@ -32,45 +33,52 @@ export const DocumentForm = ({
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    format: 'html', // Formato padrão
-    folderId: '1', // Pasta padrão
+    format: 'md',
+    folderId: '1',
     userId: user?.userId || 0
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isFullScreenMode, setIsFullScreenMode] = useState(isFullScreen);
 
-  // Carregar pastas ao montar o componente
   useEffect(() => {
     fetchFolders();
   }, [fetchFolders]);
 
-  // Carregar dados do documento ao editar
   useEffect(() => {
     if (document) {
       setFormData({
         title: document.title || '',
         content: document.content || '',
-        format: document.format || 'html',
+        format: 'md',
         folderId: document.folderId.toString(),
         userId: document.userId
       });
+    } else {
+      setFormData({
+        title: '',
+        content: '# Novo Documento\n\nComece a escrever seu conteúdo aqui...',
+        format: 'md',
+        folderId: '1',
+        userId: user?.userId || 0
+      });
     }
-  }, [document]);
+  }, [document, user]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Atualiza os dados do formulário
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    
-    // Limpa erros quando o campo é editado
     if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleContentChange = (content: string) => {
+    setFormData(prev => ({ ...prev, content }));
+    
+    if (errors.content) {
+      setErrors(prev => ({ ...prev, content: '' }));
     }
   };
 
@@ -92,9 +100,7 @@ export const DocumentForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
     
     try {
       const documentData = {
@@ -109,50 +115,44 @@ export const DocumentForm = ({
         await addDocument(documentData);
       }
       
+      // Fechar modal fullscreen primeiro
+      if (isFullScreenMode) {
+        setIsFullScreenMode(false);
+      }
+      
+      // Depois fechar modal principal
       onClose();
     } catch (error) {
       console.error('Form submission failed:', error);
     }
   };
 
-  // Formatar as opções de pasta para o formulário
   const folderOptions = folders.map(folder => ({
     value: folder.folderId.toString(),
     label: folder.name
   }));
 
-  // Opções de formato de documento
-  const formatOptions = [
-    { value: 'html', label: 'HTML' },
-    { value: 'md', label: 'Markdown' },
-    { value: 'txt', label: t('plainText') },
-    { value: 'doc', label: 'Word Document' },
-    { value: 'pdf', label: 'PDF' }
-  ];
+  const toggleFullScreen = () => {
+    setIsFullScreenMode(!isFullScreenMode);
+  };
 
-  // Conteúdo do formulário
+  const handleCloseFullScreen = () => {
+    setIsFullScreenMode(false);
+    // Não fechar o modal principal
+  };
+
   const formContent = (
-    <form onSubmit={handleSubmit} className={isFullScreen ? 'h-full flex flex-col' : ''}>
-      <div className={`space-y-4 ${isFullScreen ? 'flex-1 overflow-auto p-6' : ''}`}>
-        <FormInput
-          id="title"
-          name="title"
-          label={t('title')}
-          value={formData.title}
-          onChange={handleChange}
-          error={errors.title}
-          required
-        />
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormSelect
-            id="format"
-            name="format"
-            label={t('format')}
-            value={formData.format}
+    <form onSubmit={handleSubmit} className="h-full flex flex-col">
+      <div className="space-y-4 flex-1 flex flex-col">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            id="title"
+            name="title"
+            label={t('title')}
+            value={formData.title}
             onChange={handleChange}
-            options={formatOptions}
-            error={errors.format}
+            error={errors.title}
+            required
           />
           
           <FormSelect
@@ -166,64 +166,67 @@ export const DocumentForm = ({
             required
           />
         </div>
-        
-        <FormTextarea
-          id="content"
-          name="content"
-          label={t('content')}
-          value={formData.content}
-          onChange={handleChange}
-          error={errors.content}
-          required
-          rows={isFullScreen ? 20 : 10}
-          placeholder={t('enterDocumentContent')}
-          className={isFullScreen ? 'flex-1' : ''}
-        />
+
+        {/* Editor Markdown */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {t('content')}
+              {errors.content && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            
+            {!isFullScreenMode && (
+              <button
+                type="button"
+                onClick={toggleFullScreen}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                title="Tela cheia"
+              >
+                <Maximize2 size={16} />
+              </button>
+            )}
+          </div>
+          
+          <MarkdownEditor
+            value={formData.content}
+            onChange={handleContentChange}
+            height="flex-1"
+            placeholder="Digite o conteúdo do documento em Markdown..."
+            autoFocus={true}
+            disableFullscreen={true} // Desabilitar fullscreen interno
+          />
+          
+          {errors.content && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.content}</p>
+          )}
+        </div>
       </div>
       
-      <div className={`${isFullScreen ? 'p-4 border-t border-gray-200 dark:border-gray-700' : 'mt-6'} flex justify-end space-x-3`}>
+      <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           type="button"
-          onClick={onClose}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
+          onClick={isFullScreenMode ? handleCloseFullScreen : onClose}
+          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
-          <X className="h-4 w-4 mr-2" />
+          <X className="h-4 w-4 mr-1 inline" />
           {t('cancel')}
         </button>
         <button
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
         >
-          <Save className="h-4 w-4 mr-2" />
-          {isEditing ? t('update') : t('save')}
+          <Save className="h-4 w-4 mr-1" />
+          {isEditing ? t('update') : t('create')}
         </button>
       </div>
     </form>
   );
 
-  // Para formulários embutidos (no DocumentWorkspace), renderizamos sem o Modal
-  if (isEmbedded) {
+  if (isFullScreenMode) {
     return (
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {isEditing ? t('editDocument') : t('addDocument')}
-          </h2>
-        </div>
-        
-        <div className="flex-1 overflow-auto p-4">
-          {formContent}
-        </div>
-      </div>
-    );
-  }
-
-  // Se o modo de tela cheia estiver ativado, usamos o FullScreenModal
-  if (isFullScreen) {
-    return (
-      <FullScreenModal
-        isOpen={isOpen}
-        onClose={onClose}
+      <FullScreenModal 
+        isOpen={isOpen} 
+        onClose={handleCloseFullScreen}
         title={isEditing ? t('editDocument') : t('addDocument')}
       >
         {formContent}
@@ -231,15 +234,16 @@ export const DocumentForm = ({
     );
   }
 
-  // Caso contrário, usamos o Modal normal
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={isEditing ? t('editDocument') : t('addDocument')}
-      maxWidth="lg"
+      maxWidth="6xl"
     >
-      {formContent}
+      <div className="h-[80vh]">
+        {formContent}
+      </div>
     </Modal>
   );
 };
