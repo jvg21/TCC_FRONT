@@ -1,16 +1,13 @@
-// src/config/document/DocumentColumns.tsx - Versão atualizada com botão de versões
+// src/config/document/DocumentColumns.tsx - Seguindo padrões do projeto
 import { Column } from '../../components/common/DataTable';
 import { Document } from '../../types/document';
-import { ActionButtons } from '../../components/common/ActionButtons';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { FileText, Edit, Maximize, Eye, Clock } from 'lucide-react';
+import { FileText, Edit, Eye, Clock } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { formatDateString } from '../../utils/formatDateString';
 import { useNavigate } from 'react-router-dom';
 
 interface GetColumnsProps {
-  onEdit: (document: Document) => void;
-  onEditFullScreen: (document: Document) => void;
   onToggle: (document: Document) => void;
   onView: (document: Document) => void;
   currentUserId: number;
@@ -18,8 +15,6 @@ interface GetColumnsProps {
 }
 
 export const getDocumentColumns = ({
-  onEdit,
-  onEditFullScreen,
   onToggle,
   onView,
   currentUserId,
@@ -28,13 +23,17 @@ export const getDocumentColumns = ({
   const { t } = useLanguage();
   const navigate = useNavigate();
 
+  const handleEdit = (document: Document) => {
+    navigate(`/documents/edit/${document.documentId}`);
+  };
+
   const handleViewVersions = (document: Document) => {
     navigate(`/documents/${document.documentId}/versions`);
   };
 
   const baseColumns: Column<Document>[] = [
     {
-      header: t('title'),
+      header: t('title') || 'Title',
       accessor: (document) => (
         <div className="flex items-center">
           <FileText className="h-5 w-5 text-blue-500 mr-2" />
@@ -45,15 +44,15 @@ export const getDocumentColumns = ({
       )
     },
     {
-      header: t('format'),
+      header: t('content') || 'Content',
       accessor: (document) => (
-        <div className="text-sm text-gray-500 dark:text-gray-300">
-          {document.format.toUpperCase()}
+        <div className="text-sm text-gray-500 dark:text-gray-300 max-w-xs truncate">
+          {document.content.replace(/[#*`]/g, '').substring(0, 100)}...
         </div>
       )
     },
     {
-      header: t('createdAt'),
+      header: t('createdAt') || 'Created At',
       accessor: (document) => (
         <div className="text-sm text-gray-500 dark:text-gray-300">
           {formatDateString(document.createdAt)}
@@ -61,7 +60,7 @@ export const getDocumentColumns = ({
       )
     },
     {
-      header: t('updatedAt'),
+      header: t('updatedAt') || 'Updated At',
       accessor: (document) => (
         <div className="text-sm text-gray-500 dark:text-gray-300">
           {formatDateString(document.updatedAt)}
@@ -69,10 +68,10 @@ export const getDocumentColumns = ({
       )
     },
     {
-      header: t('status'),
+      header: t('status') || 'Status',
       accessor: (document) => (
         <StatusBadge
-          label={document.isActive ? t('active') : t('inactive')}
+          label={document.isActive ? (t('active') || 'Active') : (t('inactive') || 'Inactive')}
           variant={document.isActive ? 'success' : 'danger'}
         />
       )
@@ -81,7 +80,7 @@ export const getDocumentColumns = ({
 
   // Coluna de ações - só mostra se não for um funcionário ou se o usuário for dono do documento
   baseColumns.push({
-    header: t('actions'),
+    header: t('actions') || 'Actions',
     accessor: (document) => {
       // Usuário só pode editar/ativar/desativar documentos que ele criou, a menos que seja administrador (perfil 1 ou 2)
       const canModify = document.userId === currentUserId || !isEmployee;
@@ -91,7 +90,7 @@ export const getDocumentColumns = ({
           <button
             onClick={() => onView(document)}
             className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
-            title={t('viewDocument')}
+            title={t('viewDocument') || 'View Document'}
           >
             <Eye className="h-5 w-5" />
           </button>
@@ -99,7 +98,7 @@ export const getDocumentColumns = ({
           <button
             onClick={() => handleViewVersions(document)}
             className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 transition-colors duration-200"
-            title={t('documentVersions')}
+            title={t('documentVersions') || 'Document Versions'}
           >
             <Clock className="h-5 w-5" />
           </button>
@@ -109,23 +108,12 @@ export const getDocumentColumns = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEdit(document);
-                }}
-                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
-                title={t('editDocument')}
-              >
-                <Edit className="h-5 w-5" />
-              </button>
-              
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditFullScreen(document);
+                  handleEdit(document);
                 }}
                 className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 transition-colors duration-200"
-                title={t('editFullScreen')}
+                title={t('editDocument') || 'Edit Document'}
               >
-                <Maximize className="h-5 w-5" />
+                <Edit className="h-5 w-5" />
               </button>
               
               <button
@@ -134,11 +122,11 @@ export const getDocumentColumns = ({
                   onToggle(document);
                 }}
                 className={`text-${document.isActive ? 'red' : 'green'}-600 hover:text-${document.isActive ? 'red' : 'green'}-800 dark:text-${document.isActive ? 'red' : 'green'}-400 dark:hover:text-${document.isActive ? 'red' : 'green'}-300 transition-colors duration-200`}
-                title={document.isActive ? t('deactivateDocument') : t('activateDocument')}
+                title={document.isActive ? (t('deactivateDocument') || 'Deactivate Document') : (t('activateDocument') || 'Activate Document')}
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={document.isActive 
-                    ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" 
+                    ? "M10 14L21 3 12 14l7-7-7 7-7-7 7 7z"
                     : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"} />
                 </svg>
               </button>
@@ -146,9 +134,8 @@ export const getDocumentColumns = ({
           )}
         </div>
       );
-    },
-    className: 'text-right'
+    }
   });
-  
+
   return baseColumns;
 };

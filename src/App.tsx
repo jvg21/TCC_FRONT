@@ -1,4 +1,4 @@
-// Atualizando App.tsx para incluir rotas de tarefas
+// Atualizando App.tsx para incluir as novas rotas
 
 // src/App.tsx
 import React, { useEffect } from 'react';
@@ -19,7 +19,9 @@ import { DocumentManagement } from './config/document/Document';
 import { DocumentWorkspace } from './config/document/DocumentWorkspace';
 import { TaskManagement } from './config/task/Task';
 import { TaskDashboard } from './config/task/TaskDashboard';
+import { TaskKanbanBoard } from './config/task/TaskKanbanBoard';
 import { DocumentVersions } from './config/document/DocumentVersions';
+import { DocumentEditor } from './config/document/DocumentEditor';
 
 // Inicialização do tema no carregamento da aplicação
 const initTheme = () => {
@@ -105,13 +107,24 @@ function App() {
               </PrivateRoute>
             }
           />
+            <Route path="/documents/edit/:id" element={<PrivateRoute><DocumentEditor /></PrivateRoute>} />
+          <Route path="/documents/new" element={<PrivateRoute><DocumentEditor /></PrivateRoute>} />
 
-          {/* Novas rotas para gerenciamento de tarefas */}
+
+          {/* Rotas para gerenciamento de tarefas */}
           <Route
             path='/tasks'
             element={
               <PrivateRoute>
                 <TaskManagement />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/tasks/board'
+            element={
+              <PrivateRoute>
+                <TaskKanbanBoard />
               </PrivateRoute>
             }
           />
@@ -123,6 +136,7 @@ function App() {
               </PrivateRoute>
             }
           />
+        
           <Route
             path='/tasks/dashboard'
             element={
