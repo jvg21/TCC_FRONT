@@ -1,8 +1,9 @@
-// src/i18n/index.ts - Updated to use separate translation files
+// src/i18n/index.ts - Atualizado para incluir espanhol seguindo padrões do projeto
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { enTranslations } from './translations/en';
 import { ptTranslations } from './translations/pt';
+import { esTranslations } from './translations/es';
 
 // Carrega idioma do localStorage
 const savedLanguage = localStorage.getItem('i18nextLng');
@@ -13,6 +14,9 @@ const resources = {
   },
   pt: {
     translation: ptTranslations
+  },
+  es: {
+    translation: esTranslations
   }
 };
 

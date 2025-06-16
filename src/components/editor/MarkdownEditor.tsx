@@ -1,10 +1,11 @@
-// src/components/editor/MarkdownEditor.tsx - Versão completa com downloads e formatação avançada
+// src/components/editor/MarkdownEditor.tsx - Seguindo padrões do projeto com traduções
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Bold, Italic, Strikethrough, Code, Link, Image, 
-  List, ListOrdered, Quote, Hash, Eye, 
-  EyeOff, Download, Split, Copy, ChevronDown, Palette, Type
+  Bold, Italic, Strikethrough, Link, Image, Code, List, ListOrdered, 
+  Quote, Hash, Split, Eye, EyeOff, Download, Copy, Maximize2, Minimize2,
+  Type, Palette
 } from 'lucide-react';
+import { useLanguage } from '../../hooks/useLanguage';
 
 interface MarkdownEditorProps {
   value: string;
@@ -19,18 +20,22 @@ interface MarkdownEditorProps {
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   value,
   onChange,
-  placeholder = "Digite seu markdown aqui...",
+  placeholder,
   height = "h-96",
   showToolbar = true,
   autoFocus = false,
   disableFullscreen = false
 }) => {
+  const { t } = useLanguage();
   const [showPreview, setShowPreview] = useState(true);
   const [splitView, setSplitView] = useState(true);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontMenu, setShowFontMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Placeholder padrão traduzido
+  const defaultPlaceholder = placeholder || t('typeMarkdownHere') || 'Digite seu markdown aqui...';
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
@@ -76,22 +81,22 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         case 'b':
           e.preventDefault();
           e.stopPropagation();
-          insertText('**', '**', 'texto em negrito');
+          insertText('**', '**', t('boldText') || 'texto em negrito');
           break;
         case 'i':
           e.preventDefault();
           e.stopPropagation();
-          insertText('*', '*', 'texto em itálico');
+          insertText('*', '*', t('italicText') || 'texto em itálico');
           break;
         case 'k':
           e.preventDefault();
           e.stopPropagation();
-          insertText('[', '](url)', 'texto do link');
+          insertText('[', '](url)', t('linkText') || 'texto do link');
           break;
         case '`':
           e.preventDefault();
           e.stopPropagation();
-          insertText('`', '`', 'código');
+          insertText('`', '`', t('codeText') || 'código');
           break;
       }
     }
@@ -111,13 +116,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-3">$1</h2>')
       .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">$1</h1>')
       // Bold
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-      .replace(/__(.*?)__/g, '<strong class="font-semibold">$1</strong>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
+      .replace(/__(.*?)__/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
       // Italic
-      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/_(.*?)_/g, '<em class="italic">$1</em>')
+      .replace(/\*(.*?)\*/g, '<em class="italic text-gray-900 dark:text-white">$1</em>')
+      .replace(/_(.*?)_/g, '<em class="italic text-gray-900 dark:text-white">$1</em>')
       // Strikethrough
-      .replace(/~~(.*?)~~/g, '<del class="line-through">$1</del>')
+      .replace(/~~(.*?)~~/g, '<del class="line-through text-gray-600 dark:text-gray-400">$1</del>')
       // Cores (HTML tags personalizadas)
       .replace(/<color=(.*?)>(.*?)<\/color>/g, '<span style="color: $1">$2</span>')
       // Fontes (HTML tags personalizadas)
@@ -133,12 +138,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       // Blockquotes
       .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-2 my-2 italic text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">$1</blockquote>')
       // Listas ordenadas
-      .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 mb-1">$1</li>')
+      .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 mb-1 text-gray-900 dark:text-white">$1</li>')
       // Listas não ordenadas
-      .replace(/^- (.*$)/gim, '<li class="ml-4 mb-1 list-disc">$1</li>')
+      .replace(/^- (.*$)/gim, '<li class="ml-4 mb-1 list-disc text-gray-900 dark:text-white">$1</li>')
       // Checkboxes
-      .replace(/^- \[ \] (.*$)/gim, '<div class="flex items-center mb-1"><input type="checkbox" class="mr-2 rounded" disabled> <span>$1</span></div>')
-      .replace(/^- \[x\] (.*$)/gim, '<div class="flex items-center mb-1"><input type="checkbox" class="mr-2 rounded" checked disabled> <span class="line-through text-gray-500">$1</span></div>')
+      .replace(/^- \[ \] (.*$)/gim, '<div class="flex items-center mb-1"><input type="checkbox" class="mr-2 rounded" disabled> <span class="text-gray-900 dark:text-white">$1</span></div>')
+      .replace(/^- \[x\] (.*$)/gim, '<div class="flex items-center mb-1"><input type="checkbox" class="mr-2 rounded" checked disabled> <span class="line-through text-gray-500 dark:text-gray-400">$1</span></div>')
       // Quebras de linha
       .replace(/\n/g, '<br />');
 
@@ -147,15 +152,43 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       return `<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto my-4 border border-gray-200 dark:border-gray-700"><code class="text-sm font-mono text-gray-800 dark:text-gray-200">${code.trim()}</code></pre>`;
     });
 
-    // Tables
-    html = html.replace(/\|(.+)\|/g, (match, content) => {
-      const cells = content.split('|').map((cell: string) => cell.trim());
-      const cellElements = cells.map((cell: string) => `<td class="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">${cell}</td>`).join('');
-      return `<tr>${cellElements}</tr>`;
-    });
-
-    if (html.includes('<tr>')) {
-      html = html.replace(/(<tr>.*<\/tr>)/g, '<table class="border-collapse border border-gray-300 dark:border-gray-600 w-full my-4 text-sm">$1</table>');
+    // Tabelas
+    if (html.includes('|')) {
+      html = html.replace(/((\|.*\|\n?)+)/g, (match) => {
+        const rows = match.trim().split('\n');
+        if (rows.length < 2) return match;
+        
+        const headerRow = rows[0];
+        const separatorRow = rows[1];
+        const dataRows = rows.slice(2);
+        
+        if (!separatorRow.includes('---')) return match;
+        
+        let tableHtml = '<table class="border-collapse border border-gray-300 dark:border-gray-600 w-full my-4 text-sm">';
+        
+        // Header
+        tableHtml += '<thead class="bg-gray-50 dark:bg-gray-700">';
+        tableHtml += '<tr>';
+        headerRow.split('|').slice(1, -1).forEach(cell => {
+          tableHtml += `<th class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold text-gray-900 dark:text-white">${cell.trim()}</th>`;
+        });
+        tableHtml += '</tr>';
+        tableHtml += '</thead>';
+        
+        // Body
+        tableHtml += '<tbody>';
+        dataRows.forEach(row => {
+          tableHtml += '<tr class="hover:bg-gray-50 dark:hover:bg-gray-800">';
+          row.split('|').slice(1, -1).forEach(cell => {
+            tableHtml += `<td class="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-900 dark:text-white">${cell.trim()}</td>`;
+          });
+          tableHtml += '</tr>';
+        });
+        tableHtml += '</tbody>';
+        tableHtml += '</table>';
+        
+        return tableHtml;
+      });
     }
 
     return html;
@@ -223,61 +256,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setShowDownloadMenu(false);
   };
 
-  const downloadAsPDF = () => {
-    // Para PDF, vamos criar um HTML otimizado para impressão
-    const htmlForPDF = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Documento PDF</title>
-    <style>
-        @page { margin: 2cm; }
-        body { font-family: 'Times New Roman', serif; line-height: 1.6; color: #000; }
-        h1, h2, h3 { color: #000; page-break-after: avoid; }
-        h1 { font-size: 24px; }
-        h2 { font-size: 20px; }
-        h3 { font-size: 16px; }
-        code { background: #f0f0f0; padding: 2px 4px; border-radius: 3px; }
-        pre { background: #f0f0f0; padding: 16px; border-radius: 6px; page-break-inside: avoid; }
-        blockquote { border-left: 4px solid #ccc; margin: 0; padding-left: 16px; color: #666; }
-        table { border-collapse: collapse; width: 100%; page-break-inside: avoid; }
-        td, th { border: 1px solid #000; padding: 8px; text-align: left; }
-        img { max-width: 100%; height: auto; }
-    </style>
-</head>
-<body>
-    ${renderMarkdown(value)}
-    <script>
-        window.onload = function() {
-            window.print();
-            setTimeout(function() {
-                window.close();
-            }, 1000);
-        }
-    </script>
-</body>
-</html>`;
-    
-    const blob = new Blob([htmlForPDF], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const newWindow = window.open(url, '_blank');
-    
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 1000);
-    
-    setShowDownloadMenu(false);
-  };
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(value);
   };
-
-  // // Cores predefinidas
-  // const colors = [
-  //   '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
-  //   '#FFA500', '#800080', '#008000', '#800000', '#000080', '#808000', '#808080'
-  // ];
 
   // Fontes predefinidas
   const fonts = [
@@ -285,13 +266,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS', 'Palatino'
   ];
 
-  // const insertColor = (color: string) => {
-  //   insertText(`<color=${color}>`, '</color>', 'texto colorido');
-  //   setShowColorPicker(false);
-  // };
-
   const insertFont = (font: string) => {
-    insertText(`<font=${font}>`, '</font>', 'texto com fonte');
+    insertText(`<font=${font}>`, '</font>', t('text') || 'texto com fonte');
     setShowFontMenu(false);
   };
 
@@ -300,64 +276,36 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       {/* Formatação básica */}
       <button 
         type="button"
-        onClick={() => insertText('**', '**', 'negrito')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Negrito (Ctrl+B)"
+        onClick={() => insertText('**', '**', t('boldText') || 'negrito')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('boldTooltip') || 'Negrito (Ctrl+B)'}
       >
         <Bold size={16} />
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('*', '*', 'itálico')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Itálico (Ctrl+I)"
+        onClick={() => insertText('*', '*', t('italicText') || 'itálico')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('italicTooltip') || 'Itálico (Ctrl+I)'}
       >
         <Italic size={16} />
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('~~', '~~', 'tachado')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Tachado"
+        onClick={() => insertText('~~', '~~', t('strikethroughText') || 'tachado')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('strikethroughTooltip') || 'Tachado'}
       >
         <Strikethrough size={16} />
       </button>
       
-      {/* Cor do texto */}
-      {/* <div className="relative">
-        <button 
-          type="button" 
-          onClick={() => setShowColorPicker(!showColorPicker)}
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-          title="Cor do texto"
-        >
-          <Palette size={16} />
-        </button>
-        {showColorPicker && (
-          <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 z-50">
-            <div className="grid grid-cols-7 gap-1">
-              {colors.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => insertColor(color)}
-                  className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
-                  style={{ backgroundColor: color }}
-                  title={`Cor: ${color}`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div> */}
-
       {/* Fonte */}
       <div className="relative">
         <button 
           type="button" 
           onClick={() => setShowFontMenu(!showFontMenu)}
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-          title="Fonte"
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+          title={t('fontTooltip') || 'Fonte'}
         >
           <Type size={16} />
         </button>
@@ -369,7 +317,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   key={font}
                   type="button"
                   onClick={() => insertFont(font)}
-                  className="block w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm"
+                  className="block w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-300"
                   style={{ fontFamily: font }}
                 >
                   {font}
@@ -385,25 +333,25 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       {/* Headers */}
       <button 
         type="button" 
-        onClick={() => insertText('# ', '', 'Título')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" 
-        title="Título H1"
+        onClick={() => insertText('# ', '', t('header1') || 'Título')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold text-gray-700 dark:text-gray-300" 
+        title={t('header1Tooltip') || 'Título H1'}
       >
         H1
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('## ', '', 'Subtítulo')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" 
-        title="Título H2"
+        onClick={() => insertText('## ', '', t('header2') || 'Subtítulo')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold text-gray-700 dark:text-gray-300" 
+        title={t('header2Tooltip') || 'Título H2'}
       >
         H2
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('### ', '', 'Título')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" 
-        title="Título H3"
+        onClick={() => insertText('### ', '', t('header3') || 'Título')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold text-gray-700 dark:text-gray-300" 
+        title={t('header3Tooltip') || 'Título H3'}
       >
         H3
       </button>
@@ -412,25 +360,25 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       {/* Elementos */}
       <button 
         type="button" 
-        onClick={() => insertText('`', '`', 'código')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Código inline"
+        onClick={() => insertText('`', '`', t('codeText') || 'código')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('codeTooltip') || 'Código inline'}
       >
         <Code size={16} />
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('[', '](url)', 'texto do link')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Link (Ctrl+K)"
+        onClick={() => insertText('[', '](url)', t('linkText') || 'texto do link')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('linkTooltip') || 'Link (Ctrl+K)'}
       >
         <Link size={16} />
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('![alt](', ')', 'url-da-imagem')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Imagem"
+        onClick={() => insertText('![' + (t('imageAlt') || 'alt') + '](', ')', t('imageUrl') || 'url-da-imagem')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('imageTooltip') || 'Imagem'}
       >
         <Image size={16} />
       </button>
@@ -439,41 +387,41 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       {/* Listas */}
       <button 
         type="button" 
-        onClick={() => insertText('- ', '', 'item da lista')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Lista"
+        onClick={() => insertText('- ', '', t('listItem') || 'item da lista')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('listTooltip') || 'Lista'}
       >
         <List size={16} />
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('1. ', '', 'item numerado')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Lista numerada"
+        onClick={() => insertText('1. ', '', t('numberedItem') || 'item numerado')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('numberedListTooltip') || 'Lista numerada'}
       >
         <ListOrdered size={16} />
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('- [ ] ', '', 'tarefa')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Checkbox"
+        onClick={() => insertText('- [ ] ', '', t('task') || 'tarefa')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('checkboxTooltip') || 'Checkbox'}
       >
         <input type="checkbox" className="w-4 h-4" disabled />
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('> ', '', 'citação')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Citação"
+        onClick={() => insertText('> ', '', t('citation') || 'citação')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('quoteTooltip') || 'Citação'}
       >
         <Quote size={16} />
       </button>
       <button 
         type="button" 
-        onClick={() => insertText('#', '', 'tag')} 
-        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-        title="Tag"
+        onClick={() => insertText('#', '', t('tag') || 'tag')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+        title={t('tagTooltip') || 'Tag'}
       >
         <Hash size={16} />
       </button>
@@ -483,28 +431,18 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         <button 
           type="button" 
           onClick={() => setSplitView(!splitView)} 
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-          title="Dividir vista"
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+          title={t('splitViewTooltip') || 'Dividir vista'}
         >
           <Split size={16} />
         </button>
         <button 
           type="button" 
           onClick={() => setShowPreview(!showPreview)} 
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-          title="Toggle Preview"
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+          title={t('togglePreviewTooltip') || 'Alternar Visualização'}
         >
           {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
-        
-        {/* Copiar */}
-        <button 
-          type="button" 
-          onClick={copyToClipboard} 
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-          title="Copiar"
-        >
-          <Copy size={16} />
         </button>
         
         {/* Menu de download */}
@@ -512,88 +450,72 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           <button 
             type="button" 
             onClick={() => setShowDownloadMenu(!showDownloadMenu)}
-            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded flex items-center" 
-            title="Download"
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+            title={t('downloadTooltip') || 'Download'}
           >
             <Download size={16} />
-            <ChevronDown size={12} className="ml-1" />
           </button>
-          
           {showDownloadMenu && (
-            <div className="absolute top-10 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg py-2 z-50 w-40">
+            <div className="absolute top-10 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 z-50 w-32">
               <button
                 type="button"
                 onClick={downloadAsMarkdown}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                className="block w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-300"
               >
-                📝 Markdown (.md)
+                {t('markdown') || 'Markdown'}
               </button>
               <button
                 type="button"
                 onClick={downloadAsHTML}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                className="block w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-300"
               >
-                🌐 HTML (.html)
+                {t('html') || 'HTML'}
               </button>
               <button
                 type="button"
                 onClick={downloadAsText}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+                className="block w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-300"
               >
-                📄 Texto (.txt)
-              </button>
-              <button
-                type="button"
-                onClick={downloadAsPDF}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
-              >
-                📑 PDF (Imprimir)
+                {t('text') || 'Texto'}
               </button>
             </div>
           )}
         </div>
+        
+        <button 
+          type="button" 
+          onClick={copyToClipboard}
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300" 
+          title={t('copyTooltip') || 'Copiar'}
+        >
+          <Copy size={16} />
+        </button>
       </div>
     </div>
   );
 
-  // Fechar menus quando clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.relative')) {
-        setShowDownloadMenu(false);
-        setShowColorPicker(false);
-        setShowFontMenu(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
-
   return (
-    <div className={`${height} border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-900`}>
+    <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
       {toolbar}
       
-      <div className={`flex ${splitView && showPreview ? 'divide-x' : ''} divide-gray-200 dark:divide-gray-700 h-full`}>
+      <div className={`flex ${splitView && showPreview ? 'divide-x divide-gray-200 dark:divide-gray-700' : ''} ${height}`}>
         {/* Editor */}
-        <div className={`${splitView && showPreview ? 'w-1/2' : 'w-full'} ${!showPreview || splitView ? 'block' : 'hidden'}`}>
+        <div className={`${splitView && showPreview ? 'w-1/2' : 'w-full'} flex flex-col`}>
           <textarea
             ref={textareaRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full h-full p-4 resize-none border-none outline-none bg-transparent text-gray-900 dark:text-gray-100 font-mono text-sm leading-relaxed"
-            placeholder={placeholder}
-            spellCheck={false}
+            placeholder={defaultPlaceholder}
+            className="flex-1 p-4 border-none resize-none focus:outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           />
         </div>
         
         {/* Preview */}
         {showPreview && (
-          <div className={`${splitView ? 'w-1/2' : 'w-full'} overflow-y-auto bg-white dark:bg-gray-900`}>
+          <div className={`${splitView ? 'w-1/2' : 'w-full'} p-4 overflow-y-auto bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white`}>
             <div 
-              className="p-4 prose prose-sm max-w-none dark:prose-invert"
+              className="prose prose-sm max-w-none dark:prose-invert"
               dangerouslySetInnerHTML={{ __html: renderMarkdown(value) }}
             />
           </div>
