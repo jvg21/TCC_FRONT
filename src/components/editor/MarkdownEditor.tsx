@@ -1,9 +1,9 @@
-// src/components/editor/MarkdownEditor.tsx - Versão segura sem salvamento automático
+// src/components/editor/MarkdownEditor.tsx - Versão completa com downloads e formatação avançada
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Bold, Italic, Strikethrough, Code, Link, Image, 
   List, ListOrdered, Quote, Hash, Eye, 
-  EyeOff, Download, Split, Copy
+  EyeOff, Download, Split, Copy, ChevronDown, Palette, Type
 } from 'lucide-react';
 
 interface MarkdownEditorProps {
@@ -27,6 +27,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 }) => {
   const [showPreview, setShowPreview] = useState(true);
   const [splitView, setSplitView] = useState(true);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showFontMenu, setShowFontMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -115,6 +118,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       .replace(/_(.*?)_/g, '<em class="italic">$1</em>')
       // Strikethrough
       .replace(/~~(.*?)~~/g, '<del class="line-through">$1</del>')
+      // Cores (HTML tags personalizadas)
+      .replace(/<color=(.*?)>(.*?)<\/color>/g, '<span style="color: $1">$2</span>')
+      // Fontes (HTML tags personalizadas)
+      .replace(/<font=(.*?)>(.*?)<\/font>/g, '<span style="font-family: $1">$2</span>')
       // Inline code
       .replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono text-red-600 dark:text-red-400">$1</code>')
       // Links externos
@@ -154,12 +161,24 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     return html;
   };
 
-  const exportToHTML = () => {
+  // Funções de download
+  const downloadAsMarkdown = () => {
+    const blob = new Blob([value], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'documento.md';
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
+  };
+
+  const downloadAsHTML = () => {
     const html = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Documento Markdown</title>
+    <title>Documento</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
         h1, h2, h3 { color: #333; }
@@ -182,16 +201,105 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     a.download = 'documento.html';
     a.click();
     URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
+  };
+
+  const downloadAsText = () => {
+    // Remover markdown e manter apenas texto
+    const textContent = value
+      .replace(/[#*`~]/g, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+      .replace(/<color=.*?>(.*?)<\/color>/g, '$1')
+      .replace(/<font=.*?>(.*?)<\/font>/g, '$1');
+    
+    const blob = new Blob([textContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'documento.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
+  };
+
+  const downloadAsPDF = () => {
+    // Para PDF, vamos criar um HTML otimizado para impressão
+    const htmlForPDF = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Documento PDF</title>
+    <style>
+        @page { margin: 2cm; }
+        body { font-family: 'Times New Roman', serif; line-height: 1.6; color: #000; }
+        h1, h2, h3 { color: #000; page-break-after: avoid; }
+        h1 { font-size: 24px; }
+        h2 { font-size: 20px; }
+        h3 { font-size: 16px; }
+        code { background: #f0f0f0; padding: 2px 4px; border-radius: 3px; }
+        pre { background: #f0f0f0; padding: 16px; border-radius: 6px; page-break-inside: avoid; }
+        blockquote { border-left: 4px solid #ccc; margin: 0; padding-left: 16px; color: #666; }
+        table { border-collapse: collapse; width: 100%; page-break-inside: avoid; }
+        td, th { border: 1px solid #000; padding: 8px; text-align: left; }
+        img { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    ${renderMarkdown(value)}
+    <script>
+        window.onload = function() {
+            window.print();
+            setTimeout(function() {
+                window.close();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>`;
+    
+    const blob = new Blob([htmlForPDF], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const newWindow = window.open(url, '_blank');
+    
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
+    
+    setShowDownloadMenu(false);
   };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(value);
   };
 
+  // // Cores predefinidas
+  // const colors = [
+  //   '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+  //   '#FFA500', '#800080', '#008000', '#800000', '#000080', '#808000', '#808080'
+  // ];
+
+  // Fontes predefinidas
+  const fonts = [
+    'Arial', 'Times New Roman', 'Courier New', 'Helvetica', 'Georgia', 
+    'Verdana', 'Comic Sans MS', 'Impact', 'Trebuchet MS', 'Palatino'
+  ];
+
+  // const insertColor = (color: string) => {
+  //   insertText(`<color=${color}>`, '</color>', 'texto colorido');
+  //   setShowColorPicker(false);
+  // };
+
+  const insertFont = (font: string) => {
+    insertText(`<font=${font}>`, '</font>', 'texto com fonte');
+    setShowFontMenu(false);
+  };
+
   const toolbar = showToolbar && (
     <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      {/* Formatação básica */}
       <button 
-        type="button" // IMPORTANTE: type="button" para evitar submit
+        type="button"
         onClick={() => insertText('**', '**', 'negrito')} 
         className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
         title="Negrito (Ctrl+B)"
@@ -214,8 +322,67 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       >
         <Strikethrough size={16} />
       </button>
+      
+      {/* Cor do texto */}
+      {/* <div className="relative">
+        <button 
+          type="button" 
+          onClick={() => setShowColorPicker(!showColorPicker)}
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+          title="Cor do texto"
+        >
+          <Palette size={16} />
+        </button>
+        {showColorPicker && (
+          <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 z-50">
+            <div className="grid grid-cols-7 gap-1">
+              {colors.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => insertColor(color)}
+                  className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
+                  style={{ backgroundColor: color }}
+                  title={`Cor: ${color}`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div> */}
+
+      {/* Fonte */}
+      <div className="relative">
+        <button 
+          type="button" 
+          onClick={() => setShowFontMenu(!showFontMenu)}
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+          title="Fonte"
+        >
+          <Type size={16} />
+        </button>
+        {showFontMenu && (
+          <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 z-50 w-40">
+            <div className="max-h-48 overflow-y-auto">
+              {fonts.map((font) => (
+                <button
+                  key={font}
+                  type="button"
+                  onClick={() => insertFont(font)}
+                  className="block w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm"
+                  style={{ fontFamily: font }}
+                >
+                  {font}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
       
+      {/* Headers */}
       <button 
         type="button" 
         onClick={() => insertText('# ', '', 'Título')} 
@@ -242,6 +409,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       </button>
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
       
+      {/* Elementos */}
       <button 
         type="button" 
         onClick={() => insertText('`', '`', 'código')} 
@@ -268,6 +436,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       </button>
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
       
+      {/* Listas */}
       <button 
         type="button" 
         onClick={() => insertText('- ', '', 'item da lista')} 
@@ -310,6 +479,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       </button>
       
       <div className="ml-auto flex items-center gap-1">
+        {/* Controles de visualização */}
         <button 
           type="button" 
           onClick={() => setSplitView(!splitView)} 
@@ -326,6 +496,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         >
           {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
+        
+        {/* Copiar */}
         <button 
           type="button" 
           onClick={copyToClipboard} 
@@ -334,17 +506,70 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         >
           <Copy size={16} />
         </button>
-        <button 
-          type="button" 
-          onClick={exportToHTML} 
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
-          title="Exportar HTML"
-        >
-          <Download size={16} />
-        </button>
+        
+        {/* Menu de download */}
+        <div className="relative">
+          <button 
+            type="button" 
+            onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded flex items-center" 
+            title="Download"
+          >
+            <Download size={16} />
+            <ChevronDown size={12} className="ml-1" />
+          </button>
+          
+          {showDownloadMenu && (
+            <div className="absolute top-10 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg py-2 z-50 w-40">
+              <button
+                type="button"
+                onClick={downloadAsMarkdown}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+              >
+                📝 Markdown (.md)
+              </button>
+              <button
+                type="button"
+                onClick={downloadAsHTML}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+              >
+                🌐 HTML (.html)
+              </button>
+              <button
+                type="button"
+                onClick={downloadAsText}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+              >
+                📄 Texto (.txt)
+              </button>
+              <button
+                type="button"
+                onClick={downloadAsPDF}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"
+              >
+                📑 PDF (Imprimir)
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
+
+  // Fechar menus quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.relative')) {
+        setShowDownloadMenu(false);
+        setShowColorPicker(false);
+        setShowFontMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   return (
     <div className={`${height} border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-900`}>
