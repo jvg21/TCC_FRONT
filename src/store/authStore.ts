@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   
   login: async (email: string, password: string) => {
     try {
-      const response = await fetch('https://localhost:7198/Authenticate', {
+      const response = await fetch('https://localhost:7198/Auth/Authenticate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   
   resetPassword: async (email: string) => {
     try {
-      const response = await fetch('https://localhost:7198/ResetPassword', {
+      const response = await fetch('https://localhost:7198/User/RequestPasswordRecovery', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

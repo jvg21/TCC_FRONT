@@ -1,4 +1,4 @@
-// src/config/task/TaskViewer.tsx - Atualizado
+// src/config/task/TaskViewer.tsx
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateString } from '../../utils/formatDateString';
@@ -33,7 +33,6 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
   // Obter informações relacionadas
   const assignee = users.find(user => user.userId === task.assigneeId);
   const creator = users.find(user => user.userId === task.userId);
-  const parentTask = task.parentTaskId ? null : null; // Buscar tarefa pai se necessário
 
   // Status e prioridade
   const getStatusInfo = (status: number) => {
@@ -46,8 +45,6 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
         return { label: t('inReview'), variant: 'warning', icon: <AlertCircle className="h-5 w-5 text-yellow-500" /> };
       case TaskStatus.DONE:
         return { label: t('done'), variant: 'success', icon: <CheckCircle className="h-5 w-5 text-green-500" /> };
-      case TaskStatus.ARCHIVED:
-        return { label: t('archived'), variant: 'danger', icon: <AlertTriangle className="h-5 w-5 text-red-500" /> };
       default:
         return { label: t('unknown'), variant: 'default', icon: <Clock className="h-5 w-5 text-gray-500" /> };
     }
@@ -71,33 +68,56 @@ export const TaskViewer = ({ task, isOpen, onClose, onEdit }: TaskViewerProps) =
   const statusInfo = getStatusInfo(task.status);
   const priorityInfo = getPriorityInfo(task.priority);
 
-  // Manipuladores para atualização de status
-  const handleStatusChange = async (newStatus: number) => {
-    if (task.status === newStatus) return;
+  
+const handleStatusChange = async (newStatus: number) => {
+  if (task.status === newStatus) return;
+  
+  try {
+    setIsUpdating(true);
+    await updateTask(task.taskId, { 
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      priority: task.priority,
+      status: newStatus,
+      assigneeId: task.assigneeId,
+      userId: task.userId,
+      ...(task.parentTaskId && { parentTaskId: task.parentTaskId })
+    });
     
-    try {
-      setIsUpdating(true);
-      await updateTask(task.taskId, { status: newStatus });
-    } catch (error) {
-      console.error('Failed to update status:', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    // Atualizar task local para refletir mudança nos botões
+    task.status = newStatus;
+  } catch (error) {
+    console.error('Failed to update status:', error);
+  } finally {
+    setIsUpdating(false);
+  }
+};
 
-  // Manipuladores para atualização de prioridade
-  const handlePriorityChange = async (newPriority: number) => {
-    if (task.priority === newPriority) return;
+const handlePriorityChange = async (newPriority: number) => {
+  if (task.priority === newPriority) return;
+  
+  try {
+    setIsUpdating(true);
+    await updateTask(task.taskId, { 
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      priority: newPriority,
+      status: task.status,
+      assigneeId: task.assigneeId,
+      userId: task.userId,
+      ...(task.parentTaskId && { parentTaskId: task.parentTaskId })
+    });
     
-    try {
-      setIsUpdating(true);
-      await updateTask(task.taskId, { priority: newPriority });
-    } catch (error) {
-      console.error('Failed to update priority:', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    // Atualizar task local para refletir mudança nos botões
+    task.priority = newPriority;
+  } catch (error) {
+    console.error('Failed to update priority:', error);
+  } finally {
+    setIsUpdating(false);
+  }
+};
 
   return (
     <Modal
