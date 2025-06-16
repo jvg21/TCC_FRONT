@@ -1,8 +1,8 @@
-// src/components/editor/MarkdownEditor.tsx - Corrigido
+// src/components/editor/MarkdownEditor.tsx - Versão segura sem salvamento automático
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Bold, Italic, Underline, Strikethrough, Code, Link, Image, 
-  List, ListOrdered, Quote, Table, CheckSquare, Hash, Eye, 
+  Bold, Italic, Strikethrough, Code, Link, Image, 
+  List, ListOrdered, Quote, Hash, Eye, 
   EyeOff, Download, Split, Copy
 } from 'lucide-react';
 
@@ -13,7 +13,7 @@ interface MarkdownEditorProps {
   height?: string;
   showToolbar?: boolean;
   autoFocus?: boolean;
-  disableFullscreen?: boolean; // Nova prop
+  disableFullscreen?: boolean;
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -23,7 +23,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   height = "h-96",
   showToolbar = true,
   autoFocus = false,
-  disableFullscreen = false // Padrão false
+  disableFullscreen = false
 }) => {
   const [showPreview, setShowPreview] = useState(true);
   const [splitView, setSplitView] = useState(true);
@@ -53,29 +53,50 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // PROTEÇÃO: Bloquear Ctrl+S para evitar salvamento acidental
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    // PROTEÇÃO: Bloquear Enter em certas condições que podem submeter formulário
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    // Atalhos de formatação permitidos
     if (e.ctrlKey || e.metaKey) {
       switch (e.key) {
         case 'b':
           e.preventDefault();
+          e.stopPropagation();
           insertText('**', '**', 'texto em negrito');
           break;
         case 'i':
           e.preventDefault();
+          e.stopPropagation();
           insertText('*', '*', 'texto em itálico');
           break;
         case 'k':
           e.preventDefault();
+          e.stopPropagation();
           insertText('[', '](url)', 'texto do link');
           break;
         case '`':
           e.preventDefault();
+          e.stopPropagation();
           insertText('`', '`', 'código');
           break;
       }
     }
     
+    // Tab para indentação
     if (e.key === 'Tab') {
       e.preventDefault();
+      e.stopPropagation();
       insertText('  ');
     }
   };
@@ -169,69 +190,158 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const toolbar = showToolbar && (
     <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-      <button onClick={() => insertText('**', '**', 'negrito')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Negrito (Ctrl+B)">
+      <button 
+        type="button" // IMPORTANTE: type="button" para evitar submit
+        onClick={() => insertText('**', '**', 'negrito')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Negrito (Ctrl+B)"
+      >
         <Bold size={16} />
       </button>
-      <button onClick={() => insertText('*', '*', 'itálico')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Itálico (Ctrl+I)">
+      <button 
+        type="button" 
+        onClick={() => insertText('*', '*', 'itálico')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Itálico (Ctrl+I)"
+      >
         <Italic size={16} />
       </button>
-      <button onClick={() => insertText('~~', '~~', 'tachado')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Tachado">
+      <button 
+        type="button" 
+        onClick={() => insertText('~~', '~~', 'tachado')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Tachado"
+      >
         <Strikethrough size={16} />
       </button>
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
       
-      <button onClick={() => insertText('# ', '', 'Título')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" title="Título H1">
+      <button 
+        type="button" 
+        onClick={() => insertText('# ', '', 'Título')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" 
+        title="Título H1"
+      >
         H1
       </button>
-      <button onClick={() => insertText('## ', '', 'Subtítulo')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" title="Título H2">
+      <button 
+        type="button" 
+        onClick={() => insertText('## ', '', 'Subtítulo')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" 
+        title="Título H2"
+      >
         H2
       </button>
-      <button onClick={() => insertText('### ', '', 'Título')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" title="Título H3">
+      <button 
+        type="button" 
+        onClick={() => insertText('### ', '', 'Título')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-xs font-bold" 
+        title="Título H3"
+      >
         H3
       </button>
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
       
-      <button onClick={() => insertText('`', '`', 'código')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Código inline">
+      <button 
+        type="button" 
+        onClick={() => insertText('`', '`', 'código')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Código inline"
+      >
         <Code size={16} />
       </button>
-      <button onClick={() => insertText('[', '](url)', 'texto do link')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Link (Ctrl+K)">
+      <button 
+        type="button" 
+        onClick={() => insertText('[', '](url)', 'texto do link')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Link (Ctrl+K)"
+      >
         <Link size={16} />
       </button>
-      <button onClick={() => insertText('![alt](', ')', 'url-da-imagem')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Imagem">
+      <button 
+        type="button" 
+        onClick={() => insertText('![alt](', ')', 'url-da-imagem')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Imagem"
+      >
         <Image size={16} />
       </button>
       <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1"></div>
       
-      <button onClick={() => insertText('- ', '', 'item da lista')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Lista">
+      <button 
+        type="button" 
+        onClick={() => insertText('- ', '', 'item da lista')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Lista"
+      >
         <List size={16} />
       </button>
-      <button onClick={() => insertText('1. ', '', 'item numerado')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Lista numerada">
+      <button 
+        type="button" 
+        onClick={() => insertText('1. ', '', 'item numerado')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Lista numerada"
+      >
         <ListOrdered size={16} />
       </button>
-      <button onClick={() => insertText('- [ ] ', '', 'tarefa')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Checkbox">
-        <CheckSquare size={16} />
+      <button 
+        type="button" 
+        onClick={() => insertText('- [ ] ', '', 'tarefa')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Checkbox"
+      >
+        <input type="checkbox" className="w-4 h-4" disabled />
       </button>
-      <button onClick={() => insertText('> ', '', 'citação')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Citação">
+      <button 
+        type="button" 
+        onClick={() => insertText('> ', '', 'citação')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Citação"
+      >
         <Quote size={16} />
       </button>
-      <button onClick={() => insertText('#', '', 'tag')} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Tag">
+      <button 
+        type="button" 
+        onClick={() => insertText('#', '', 'tag')} 
+        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+        title="Tag"
+      >
         <Hash size={16} />
       </button>
       
       <div className="ml-auto flex items-center gap-1">
-        <button onClick={() => setSplitView(!splitView)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Dividir vista">
+        <button 
+          type="button" 
+          onClick={() => setSplitView(!splitView)} 
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+          title="Dividir vista"
+        >
           <Split size={16} />
         </button>
-        <button onClick={() => setShowPreview(!showPreview)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Toggle Preview">
+        <button 
+          type="button" 
+          onClick={() => setShowPreview(!showPreview)} 
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+          title="Toggle Preview"
+        >
           {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
-        <button onClick={copyToClipboard} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Copiar">
+        <button 
+          type="button" 
+          onClick={copyToClipboard} 
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+          title="Copiar"
+        >
           <Copy size={16} />
         </button>
-        <button onClick={exportToHTML} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" title="Exportar HTML">
+        <button 
+          type="button" 
+          onClick={exportToHTML} 
+          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded" 
+          title="Exportar HTML"
+        >
           <Download size={16} />
         </button>
-        {/* Removido botão fullscreen quando disableFullscreen=true */}
       </div>
     </div>
   );
