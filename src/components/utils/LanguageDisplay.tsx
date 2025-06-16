@@ -1,5 +1,4 @@
-// src/components/LanguageDisplay.tsx
-
+// src/components/utils/LanguageDisplay.tsx - Seguindo padrões do projeto
 import { useLanguage } from "../../hooks/useLanguage";
 
 export const LanguageDisplay = () => {
@@ -10,6 +9,9 @@ export const LanguageDisplay = () => {
       case 'pt':
       case 'pt-BR':
         return 'Português';
+      case 'es':
+      case 'es-ES':
+        return 'Español';
       case 'en':
       case 'en-US':
         return 'English';
