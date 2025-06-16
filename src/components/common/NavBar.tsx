@@ -105,12 +105,12 @@ export const NavBar = () => {
                                         >
                                             {t('documentWorkspace')}
                                         </Link>
-                                        <Link 
+                                        {/* <Link 
                                             to="/documents/editor" 
                                             className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
                                         >
                                             {t('documentEditor')}
-                                        </Link>
+                                        </Link> */}
                                     </div>
                                 </div>
                                 
@@ -288,13 +288,13 @@ export const NavBar = () => {
                             {t('documentWorkspace')}
                         </button>
                         
-                        <button 
+                        {/* <button 
                             onClick={() => handleNavigate('/documents/editor')}
                             className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
                         >
                             <Edit className="h-5 w-5 inline-block mr-2" />
                             {t('documentEditor')}
-                        </button>
+                        </button> */}
                         
                         {/* Task Links Mobile */}
                         <button 
