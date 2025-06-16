@@ -57,12 +57,12 @@ export const NavBar = () => {
                         {/* Desktop Navigation Links */}
                         <div className="hidden md:block ml-10">
                             <div className="flex items-center space-x-4">
-                                <Link 
+                                {/* <Link 
                                     to="/dashboard" 
                                     className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 transition-colors duration-200"
                                 >
                                     {t('dashboard')}
-                                </Link>
+                                </Link> */}
                                 
                                 {/* Only show Companies link for admins */}
                                 {user?.profile === 1 && (
