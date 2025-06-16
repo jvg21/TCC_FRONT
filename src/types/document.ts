@@ -1,17 +1,18 @@
-// src/types/document.ts
 import { User } from "./user";
 
 export interface Document {
   documentId: number;
   title: string;
   content: string;
-  format: string;
   createdAt: string;
   updatedAt: string;
   userId: number;
   folderId: number;
   isActive: boolean;
-  user?: User; // Usuário que criou o documento (opcional, para exibição)
+  
+  // Relacionamentos opcionais para exibição
+  user?: User; // Usuário que criou o documento
+  folder?: Folder; // Pasta onde está o documento
 }
 
 export interface DocumentVersion {
@@ -19,13 +20,19 @@ export interface DocumentVersion {
   documentId: number;
   content: string;
   createdAt: string;
+  updatedAt: string;
   userId: number;
   comment?: string;
+  
+  // Relacionamentos opcionais
+  document?: Document;
+  user?: User;
 }
 
 export interface DocumentTag {
-  tagId: number;
+  documentTagId: number;
   documentId: number;
+  tagId: number;
   createdAt: string;
 }
 
@@ -40,7 +47,7 @@ export interface Tag {
 export interface Folder {
   folderId: number;
   name: string;
-  parentFolderId?: number;
+  parentFolderId?: number | null;
   userId: number;
   isActive: boolean;
   createdAt: string;
@@ -54,18 +61,18 @@ export interface DocumentState {
   loading: boolean;
   error: string | null;
   
-  // Document actions
+  // Ações básicas do CRUD de documentos
   fetchDocuments: () => Promise<void>;
   getDocument: (id: number) => Document | undefined;
   addDocument: (documentData: Omit<Document, 'documentId' | 'isActive' | 'createdAt' | 'updatedAt'>) => Promise<any>;
   updateDocument: (id: number, documentData: Partial<Document>) => Promise<void>;
   toggleDocumentStatus: (id: number) => Promise<void>;
   
-  // Folder actions
+  // Ações para pastas
   fetchFolders: () => Promise<void>;
   addFolder: (folderData: Omit<Folder, 'folderId' | 'isActive' | 'createdAt' | 'updatedAt'>) => Promise<any>;
   
-  // Tag actions
+  // Ações para tags
   fetchTags: () => Promise<void>;
   addTag: (tagData: Omit<Tag, 'tagId' | 'isActive' | 'createdAt' | 'updatedAt'>) => Promise<any>;
   addTagToDocument: (documentId: number, tagId: number) => Promise<void>;

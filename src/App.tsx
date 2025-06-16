@@ -21,6 +21,7 @@ import { TaskManagement } from './config/task/Task';
 import { TaskDashboard } from './config/task/TaskDashboard';
 import { TaskKanbanBoard } from './config/task/TaskKanbanBoard';
 import { DocumentVersions } from './config/document/DocumentVersions';
+import { DocumentEditor } from './config/document/DocumentEditor';
 
 // Inicialização do tema no carregamento da aplicação
 const initTheme = () => {
@@ -106,7 +107,9 @@ function App() {
               </PrivateRoute>
             }
           />
-   
+            <Route path="/documents/edit/:id" element={<PrivateRoute><DocumentEditor /></PrivateRoute>} />
+          <Route path="/documents/new" element={<PrivateRoute><DocumentEditor /></PrivateRoute>} />
+
 
           {/* Rotas para gerenciamento de tarefas */}
           <Route
@@ -133,6 +136,7 @@ function App() {
               </PrivateRoute>
             }
           />
+        
           <Route
             path='/tasks/dashboard'
             element={

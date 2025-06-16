@@ -1,4 +1,4 @@
-// src/config/document/DocumentForms.tsx - Corrigido
+// src/config/document/DocumentForm.tsx - Seguindo padrões do projeto
 import { useState, useEffect } from 'react';
 import { useDocumentStore } from '../../store/documentStore';
 import { Document } from '../../types/document';
@@ -33,8 +33,7 @@ export const DocumentForm = ({
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    format: 'md',
-    folderId: '1',
+    folderId: '1', // Pasta padrão
     userId: user?.userId || 0
   });
 
@@ -50,7 +49,6 @@ export const DocumentForm = ({
       setFormData({
         title: document.title || '',
         content: document.content || '',
-        format: 'md',
         folderId: document.folderId.toString(),
         userId: document.userId
       });
@@ -58,8 +56,7 @@ export const DocumentForm = ({
       setFormData({
         title: '',
         content: '# Novo Documento\n\nComece a escrever seu conteúdo aqui...',
-        format: 'md',
-        folderId: '1',
+        folderId: '1', // Pasta padrão
         userId: user?.userId || 0
       });
     }
@@ -86,11 +83,15 @@ export const DocumentForm = ({
     const newErrors: Record<string, string> = {};
     
     if (!formData.title.trim()) {
-      newErrors.title = t('titleRequired');
+      newErrors.title = t('titleRequired') || 'Title is required';
     }
     
     if (!formData.content.trim()) {
-      newErrors.content = t('contentRequired');
+      newErrors.content = t('contentRequired') || 'Content is required';
+    }
+    
+    if (!formData.folderId) {
+      newErrors.folderId = t('folderRequired') || 'Folder is required';
     }
     
     setErrors(newErrors);
@@ -99,79 +100,87 @@ export const DocumentForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
-    
+
     try {
-      const documentData = {
-        ...formData,
-        folderId: parseInt(formData.folderId),
-        userId: formData.userId
-      };
-      
       if (isEditing && document) {
-        await updateDocument(document.documentId, documentData);
+        await updateDocument(document.documentId, {
+          title: formData.title,
+          content: formData.content,
+          folderId: parseInt(formData.folderId)
+        });
       } else {
-        await addDocument(documentData);
+        await addDocument({
+          title: formData.title,
+          content: formData.content,
+          folderId: parseInt(formData.folderId),
+          userId: formData.userId
+        });
       }
       
-      // Fechar modal fullscreen primeiro
       if (isFullScreenMode) {
-        setIsFullScreenMode(false);
+        handleCloseFullScreen();
+      } else {
+        onClose();
       }
-      
-      // Depois fechar modal principal
-      onClose();
     } catch (error) {
-      console.error('Form submission failed:', error);
+      console.error('Error saving document:', error);
     }
   };
 
+  const toggleFullScreen = () => {
+    setIsFullScreenMode(true);
+  };
+
+  const handleCloseFullScreen = () => {
+    setIsFullScreenMode(false);
+    onClose();
+  };
+
+  // Preparar opções de pastas
   const folderOptions = folders.map(folder => ({
     value: folder.folderId.toString(),
     label: folder.name
   }));
 
-  const toggleFullScreen = () => {
-    setIsFullScreenMode(!isFullScreenMode);
-  };
-
-  const handleCloseFullScreen = () => {
-    setIsFullScreenMode(false);
-    // Não fechar o modal principal
-  };
-
   const formContent = (
-    <form onSubmit={handleSubmit} className="h-full flex flex-col">
-      <div className="space-y-4 flex-1 flex flex-col">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormInput
-            id="title"
-            name="title"
-            label={t('title')}
-            value={formData.title}
-            onChange={handleChange}
-            error={errors.title}
-            required
-          />
-          
-          <FormSelect
-            id="folderId"
-            name="folderId"
-            label={t('folder')}
-            value={formData.folderId}
-            onChange={handleChange}
-            options={folderOptions}
-            error={errors.folderId}
-            required
-          />
+    <form onSubmit={handleSubmit} className={`flex flex-col ${isFullScreenMode ? 'h-full' : 'h-[80vh]'}`}>
+      <div className="flex flex-col space-y-6 mb-6">
+        {/* Título */}
+        <div className="flex space-x-4">
+          <div className="flex-1">
+            <FormInput
+              id="title"
+              name="title"
+              label={t('title') || 'Title'}
+              value={formData.title}
+              onChange={handleChange}
+              error={errors.title}
+              required
+            />
+          </div>
+
+          {/* Pasta */}
+          <div className="w-64">
+            <FormSelect
+              id="folderId"
+              name="folderId"
+              label={t('folder') || 'Folder'}
+              value={formData.folderId}
+              onChange={handleChange}
+              options={folderOptions}
+              error={errors.folderId}
+              required
+            />
+          </div>
         </div>
 
         {/* Editor Markdown */}
         <div className="flex-1 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t('content')}
+              {t('content') || 'Content'}
               {errors.content && <span className="text-red-500 ml-1">*</span>}
             </label>
             
@@ -187,14 +196,16 @@ export const DocumentForm = ({
             )}
           </div>
           
-          <MarkdownEditor
-            value={formData.content}
-            onChange={handleContentChange}
-            height="flex-1"
-            placeholder="Digite o conteúdo do documento em Markdown..."
-            autoFocus={true}
-            disableFullscreen={true} // Desabilitar fullscreen interno
-          />
+          <div className="flex-1">
+            <MarkdownEditor
+              value={formData.content}
+              onChange={handleContentChange}
+              height={isFullScreenMode ? "h-full" : "h-96"}
+              placeholder="Digite o conteúdo do documento em Markdown..."
+              autoFocus={true}
+              disableFullscreen={true} // Desabilitar fullscreen interno
+            />
+          </div>
           
           {errors.content && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.content}</p>
@@ -209,14 +220,14 @@ export const DocumentForm = ({
           className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           <X className="h-4 w-4 mr-1 inline" />
-          {t('cancel')}
+          {t('cancel') || 'Cancel'}
         </button>
         <button
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
         >
           <Save className="h-4 w-4 mr-1" />
-          {isEditing ? t('update') : t('create')}
+          {isEditing ? (t('update') || 'Update') : (t('create') || 'Create')}
         </button>
       </div>
     </form>
@@ -227,7 +238,7 @@ export const DocumentForm = ({
       <FullScreenModal 
         isOpen={isOpen} 
         onClose={handleCloseFullScreen}
-        title={isEditing ? t('editDocument') : t('addDocument')}
+        title={isEditing ? (t('editDocument') || 'Edit Document') : (t('addDocument') || 'Add Document')}
       >
         {formContent}
       </FullScreenModal>
@@ -238,8 +249,8 @@ export const DocumentForm = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? t('editDocument') : t('addDocument')}
-      maxWidth="6xl"
+      title={isEditing ? (t('editDocument') || 'Edit Document') : (t('addDocument') || 'Add Document')}
+      maxWidth="xl"
     >
       <div className="h-[80vh]">
         {formContent}
